@@ -27,40 +27,10 @@ Local Recommendations is a Jellyfin server plugin that generates personalized mo
 
 ## Installation
 
-*(Installation instructions will be added after initial release)*
-
-1. Add the plugin repository to Jellyfin
+1. Add the plugin repository to Jellyfin - https://raw.githubusercontent.com/rdpharr/jellyfin-plugin-localrecs/main/manifest.json
 2. Install "Local Recommendations" from the plugin catalog
 3. Restart Jellyfin server
 4. Configure the plugin and set up per-user virtual libraries
-
-## How It Works
-
-### Algorithm
-
-The plugin uses a content-based filtering approach:
-
-1. **Feature Extraction** - Extracts genres, actors, directors, tags, ratings, and release year from each item
-2. **TF-IDF Embeddings** - Computes term frequency-inverse document frequency vectors for categorical features
-3. **User Profiles** - Builds a taste vector for each user by aggregating weighted embeddings of watched items
-4. **Similarity Scoring** - Recommends unwatched items with highest cosine similarity to user's taste vector
-5. **Proximity Bonuses** - Optional bonuses for items with similar release years and ratings to user's preferences
-6. **Weighting Factors** - Applies boosts for favorites, rewatches, and recency to improve recommendations
-
-### Virtual Libraries
-
-Recommendations are exposed as per-user virtual libraries that appear in Jellyfin's library list. The plugin:
-
-1. **Creates directories** in the plugin data folder for each user (e.g., `{PluginData}/virtual-libraries/{userId}/movies`)
-2. **Generates .strm files** that point to the original media files in your library
-3. **Admin creates libraries** via Jellyfin UI pointing to these directories (one-time setup)
-4. **Sets permissions** so each user sees only their own recommendation libraries
-
-Each user gets:
-- A "Recommended Movies" library
-- A "Recommended TV" library
-
-The `.strm` files allow Jellyfin to stream the actual media while keeping recommendations separate from your main library.
 
 ## Setup
 
@@ -147,6 +117,35 @@ Recommendations update automatically via scheduled task:
 - Limit vocabulary sizes for actors, directors, and tags (default: 500 for actors and tags)
 - Enable/disable parallel processing
 - Adjust max parallel tasks
+
+## How It Works
+
+### Algorithm
+
+The plugin uses a content-based filtering approach:
+
+1. **Feature Extraction** - Extracts genres, actors, directors, tags, ratings, and release year from each item
+2. **TF-IDF Embeddings** - Computes term frequency-inverse document frequency vectors for categorical features
+3. **User Profiles** - Builds a taste vector for each user by aggregating weighted embeddings of watched items
+4. **Similarity Scoring** - Recommends unwatched items with highest cosine similarity to user's taste vector
+5. **Proximity Bonuses** - Optional bonuses for items with similar release years and ratings to user's preferences
+6. **Weighting Factors** - Applies boosts for favorites, rewatches, and recency to improve recommendations
+
+### Virtual Libraries
+
+Recommendations are exposed as per-user virtual libraries that appear in Jellyfin's library list. The plugin:
+
+1. **Creates directories** in the plugin data folder for each user (e.g., `{PluginData}/virtual-libraries/{userId}/movies`)
+2. **Generates .strm files** that point to the original media files in your library
+3. **Admin creates libraries** via Jellyfin UI pointing to these directories (one-time setup)
+4. **Sets permissions** so each user sees only their own recommendation libraries
+
+Each user gets:
+- A "Recommended Movies" library
+- A "Recommended TV" library
+
+The `.strm` files allow Jellyfin to stream the actual media while keeping recommendations separate from your main library.
+
 
 ## Privacy
 
