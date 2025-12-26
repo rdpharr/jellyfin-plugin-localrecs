@@ -1,0 +1,74 @@
+name: General Feedback
+description: Share your experience, questions, or general feedback
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your feedback! We appreciate hearing from users about their experience with the plugin.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Feedback Type
+      description: What type of feedback are you providing?
+      options:
+        - General experience
+        - Question
+        - Documentation improvement
+        - Setup/installation experience
+        - Recommendation quality
+        - Performance feedback
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your Feedback
+      description: Share your thoughts, questions, or suggestions
+      placeholder: Tell us what you think...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: satisfaction
+    attributes:
+      label: Overall Satisfaction
+      description: How satisfied are you with the plugin?
+      options:
+        - Very satisfied
+        - Satisfied
+        - Neutral
+        - Dissatisfied
+        - Very dissatisfied
+    validations:
+      required: false
+
+  - type: input
+    id: library-size
+    attributes:
+      label: Library Size (optional)
+      description: Approximately how many movies and TV shows do you have?
+      placeholder: "e.g., 500 movies, 100 TV series"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information you'd like to share
+      placeholder: Additional details...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have sanitized any personal information from my feedback
+          required: true

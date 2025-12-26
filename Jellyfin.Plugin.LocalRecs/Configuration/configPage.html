@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Local Recommendations</title>
+</head>
+<body>
+    <div id="LocalRecsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                
+                <form id="LocalRecsConfigForm">
+                    
+                    <!-- Page Title -->
+                    <h1 class="sectionTitle">Local Recommendations Plugin</h1>
+                    
+                    <!-- Tabs -->
+                    <div data-role="controlgroup" data-type="horizontal" class="localnav" data-mini="true">
+                        <button is="emby-button" type="button" class="raised ui-btn-active tab-button-setup" data-tab="setup">Setup</button>
+                        <button is="emby-button" type="button" class="raised tab-button-settings" data-tab="settings">Settings</button>
+                        <button is="emby-button" type="button" class="raised tab-button-actions" data-tab="actions">Actions</button>
+                    </div>
+                    
+                    <!-- Setup Tab -->
+                    <div id="tab-setup" class="tab-content" style="display:block;">
+                        <h2 class="sectionTitle">Library Setup</h2>
+                        <p>Complete these one-time setup steps to enable personalized recommendations for each user.</p>
+                        
+                        <div id="setupStatusContainer">
+                            <p>Loading library paths...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div id="tab-settings" class="tab-content" style="display:none;">
+                        <h2 class="sectionTitle">Recommendation Settings</h2>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="movieRecommendationCount">Movie Recommendation Count:</label>
+                            <input is="emby-input" type="number" id="movieRecommendationCount" name="movieRecommendationCount" min="1" max="100" />
+                            <div class="fieldDescription">Number of movie recommendations to generate per user (default: 25)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="tvRecommendationCount">TV Recommendation Count:</label>
+                            <input is="emby-input" type="number" id="tvRecommendationCount" name="tvRecommendationCount" min="1" max="100" />
+                            <div class="fieldDescription">Number of TV show recommendations to generate per user (default: 25)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="minWatchedItems">Min Watched Items for Personalization:</label>
+                            <input is="emby-input" type="number" id="minWatchedItems" name="minWatchedItems" min="1" max="20" />
+                            <div class="fieldDescription">Users with fewer watched items will receive popular content (default: 3)</div>
+                        </div>
+                        
+                        <h2 class="sectionTitle">Series Filtering</h2>
+                        
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="excludeAbandonedSeries" name="excludeAbandonedSeries" />
+                                <span>Exclude Abandoned Series from Recommendations</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Prevent recommending partially watched series that haven't been watched recently</div>
+                        </div>
+                        
+                        <div class="inputContainer" id="abandonedSeriesThresholdContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="abandonedSeriesThreshold">Abandoned Series Threshold (days):</label>
+                            <input is="emby-input" type="number" id="abandonedSeriesThreshold" name="abandonedSeriesThreshold" min="1" max="730" />
+                            <div class="fieldDescription">Days since last watched before a series is excluded (default: 90)</div>
+                        </div>
+                        
+                        <h2 class="sectionTitle">Weighting Factors</h2>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="favoriteBoost">Favorite Boost:</label>
+                            <input is="emby-input" type="number" id="favoriteBoost" name="favoriteBoost" min="1.0" max="5.0" step="0.1" />
+                            <div class="fieldDescription">Multiplier for favorited items (default: 2.0)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="rewatchBoost">Rewatch Boost:</label>
+                            <input is="emby-input" type="number" id="rewatchBoost" name="rewatchBoost" min="1.0" max="5.0" step="0.1" />
+                            <div class="fieldDescription">Multiplier for rewatched items (default: 1.5)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="recencyDecayHalfLife">Recency Decay Half-Life (days):</label>
+                            <input is="emby-input" type="number" id="recencyDecayHalfLife" name="recencyDecayHalfLife" min="30" max="1825" />
+                            <div class="fieldDescription">Time for watch weight to decay by half (default: 365)</div>
+                        </div>
+                        
+                        <h2 class="sectionTitle">Performance Tuning</h2>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="maxVocabularyActors">Max Vocabulary Actors:</label>
+                            <input is="emby-input" type="number" id="maxVocabularyActors" name="maxVocabularyActors" min="0" max="5000" />
+                            <div class="fieldDescription">Limit actor vocabulary size (0 = unlimited, default: 500)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="maxVocabularyDirectors">Max Vocabulary Directors:</label>
+                            <input is="emby-input" type="number" id="maxVocabularyDirectors" name="maxVocabularyDirectors" min="0" max="2000" />
+                            <div class="fieldDescription">Limit director vocabulary size (0 = unlimited, default: 0)</div>
+                        </div>
+                        
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="maxVocabularyTags">Max Vocabulary Tags:</label>
+                            <input is="emby-input" type="number" id="maxVocabularyTags" name="maxVocabularyTags" min="0" max="5000" />
+                            <div class="fieldDescription">Limit tag vocabulary size (0 = unlimited, default: 500)</div>
+                        </div>
+                        
+                        <br/>
+                        <button is="emby-button" type="submit" class="raised button-submit block">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Actions Tab -->
+                    <div id="tab-actions" class="tab-content" style="display:none;">
+                        <h2 class="sectionTitle">Plugin Actions</h2>
+                        
+                        <h3 class="sectionTitle">Recommendation Management</h3>
+                        <p>Manually trigger recommendation updates or run performance benchmarks.</p>
+                        
+                        <button is="emby-button" type="button" class="raised" id="triggerRefreshButton">
+                            <span>Trigger Manual Refresh</span>
+                        </button>
+                        <div class="fieldDescription">Opens the Scheduled Tasks page where you can manually run the "Refresh Recommendations" task.</div>
+                        
+                        <h3 class="sectionTitle">Performance Testing</h3>
+                        <p>Run benchmarks to measure recommendation computation performance on your library.</p>
+                        
+                        <button is="emby-button" type="button" class="raised" id="triggerBenchmarkButton">
+                            <span>Run Benchmark Task</span>
+                        </button>
+                        <button is="emby-button" type="button" class="raised" id="refreshBenchmarkResults">
+                            <span>Refresh Results</span>
+                        </button>
+                        <button is="emby-button" type="button" class="raised" id="downloadBenchmarkResults" style="display: none;">
+                            <span>Download Results</span>
+                        </button>
+                        <div class="fieldDescription">Opens the Scheduled Tasks page where you can run the "Benchmark Recommendations" task.</div>
+                        
+                        <div id="benchmarkResultsContainer" style="margin-top: 2em;">
+                            <!-- Benchmark results will be loaded here -->
+                        </div>
+                        
+                        <h3 class="sectionTitle">Documentation</h3>
+                        <p>For detailed information about this plugin, visit the GitHub repository.</p>
+                        
+                        <a href="https://github.com/rdpharr/jellyfin-plugin-localrecs" target="_blank">
+                            <button is="emby-button" type="button" class="raised">
+                                <span>View Documentation</span>
+                            </button>
+                        </a>
+                    </div>
+                    
+                </form>
+                
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+            var LocalRecsConfig = {
+                pluginId: "2d2a8fdf-0593-4258-a83c-31c4b14e0110",
+                initialized: false,
+                
+                /**
+                 * Escapes HTML special characters to prevent XSS attacks.
+                 */
+                escapeHtml: function(text) {
+                    if (!text) {
+                        return '';
+                    }
+                    var div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                },
+                
+                /**
+                 * Initializes tab navigation.
+                 */
+                initTabs: function(page) {
+                    var self = this;
+                    var tabButtons = [
+                        { button: page.querySelector('.tab-button-setup'), tab: 'setup' },
+                        { button: page.querySelector('.tab-button-settings'), tab: 'settings' },
+                        { button: page.querySelector('.tab-button-actions'), tab: 'actions' }
+                    ];
+                    
+                    tabButtons.forEach(function(item) {
+                        item.button.addEventListener('click', function() {
+                            // Update button states
+                            tabButtons.forEach(function(btn) {
+                                btn.button.classList.remove('ui-btn-active');
+                            });
+                            this.classList.add('ui-btn-active');
+                            
+                            // Update content visibility
+                            page.querySelectorAll('.tab-content').forEach(function(content) {
+                                content.style.display = 'none';
+                            });
+                            page.querySelector('#tab-' + item.tab).style.display = 'block';
+                            
+                            // Load setup status when switching to setup tab
+                            if (item.tab === 'setup') {
+                                self.loadSetupStatus(page);
+                            }
+                            
+                            // Load benchmark results when switching to actions tab
+                            if (item.tab === 'actions') {
+                                self.loadBenchmarkResults(page);
+                            }
+                        });
+                    });
+                },
+                
+                /**
+                 * Loads setup paths from backend API.
+                 */
+                loadSetupStatus: function(page) {
+                    var self = this;
+                    var container = page.querySelector('#setupStatusContainer');
+                    container.innerHTML = '<p>Loading library paths...</p>';
+                    
+                    ApiClient.getJSON(ApiClient.getUrl('LocalRecs/Setup/Paths'))
+                        .then(function(users) {
+                            if (!users || users.length === 0) {
+                                container.innerHTML = '<p>No users found. Create users in Jellyfin first, then refresh this page.</p>';
+                                return;
+                            }
+                            
+                            // Check if all libraries are created
+                            var allCreated = users.every(function(user) { return user.LibrariesCreated; });
+                            
+                            if (allCreated) {
+                                container.innerHTML = '<div style="background: rgba(76, 175, 80, 0.1); padding: 1.5em; border-left: 4px solid #4caf50;">' +
+                                    '<h3 style="margin-top: 0;">Setup Complete!</h3>' +
+                                    '<p>All recommendation libraries have been created. No further setup is required.</p>' +
+                                    '<p>Run the "Refresh Local Recommendations" scheduled task to generate recommendations.</p>' +
+                                    '</div>';
+                                return;
+                            }
+                            
+                            var html = '<div class="paperList">';
+                            
+                            users.forEach(function(user) {
+                                html += self.renderUserSetupCard(user);
+                            });
+                            
+                            html += '</div>';
+                            html += self.renderNextStepsBox();
+                            
+                            container.innerHTML = html;
+                            
+                            // Add copy button event listeners
+                            self.initCopyButtons(page);
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to load library paths:', error);
+                            container.innerHTML = '<p style="color: #ff5252;">Error loading library paths. Please check that the plugin is properly installed.</p>';
+                        });
+                },
+                
+                /**
+                 * Renders next steps box.
+                 */
+                renderNextStepsBox: function() {
+                    var html = '<div style="background: rgba(255,193,7,0.1); padding: 1.5em; margin-top: 2em; border-left: 4px solid #ffc107;">';
+                    html += '<h3 style="margin-top: 0;">After Creating Libraries</h3>';
+                    html += '<p><strong>Run the recommendation refresh task:</strong></p>';
+                    html += '<ol style="margin: 0.5em 0; padding-left: 1.5em; line-height: 1.8;">';
+                    html += '<li>Go to <strong>Dashboard → Scheduled Tasks</strong></li>';
+                    html += '<li>Find <strong>"Refresh Local Recommendations"</strong></li>';
+                    html += '<li>Click the <strong>Play button</strong> to run it now</li>';
+                    html += '</ol>';
+                    html += '</div>';
+                    return html;
+                },
+                
+                /**
+                 * Renders a user setup card.
+                 */
+                renderUserSetupCard: function(user) {
+                    // Skip rendering if libraries are already created
+                    if (user.LibrariesCreated) {
+                        return '';
+                    }
+
+                    var username = this.escapeHtml(user.Username);
+                    var moviePath = this.escapeHtml(user.MovieLibraryPath);
+                    var tvPath = this.escapeHtml(user.TvLibraryPath);
+                    var suggestedMovieName = this.escapeHtml(user.SuggestedMovieLibraryName);
+                    var suggestedTvName = this.escapeHtml(user.SuggestedTvLibraryName);
+                    var userIdForButton = user.UserId.replace(/-/g, '');
+                    
+                    var html = '<div class="listItem" style="margin: 1em 0; padding: 1.5em; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02);">';
+                    
+                    html += '<h3 style="margin-top: 0;">' + username + '</h3>';
+                    
+                    // Movie library section
+                    html += '<div style="margin: 1.5em 0;">';
+                    html += '<h4 style="margin-bottom: 0.5em;">Recommended Movies Library</h4>';
+                    html += '<div class="inputContainer">';
+                    html += '<label class="inputLabel inputLabelUnfocused">Folder Path:</label>';
+                    html += '<div style="display: flex; gap: 0.5em; align-items: center;">';
+                    html += '<input type="text" class="emby-input" readonly value="' + moviePath + '" style="flex: 1; font-family: monospace;" />';
+                    html += '<button is="emby-button" type="button" class="raised copy-button" data-path="' + moviePath + '" style="min-width: 80px;">Copy</button>';
+                    html += '</div>';
+                    html += '<div class="fieldDescription" style="margin-top: 0.5em;">Suggested Library Name: <strong>' + suggestedMovieName + '</strong></div>';
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    // TV library section
+                    html += '<div style="margin: 1.5em 0;">';
+                    html += '<h4 style="margin-bottom: 0.5em;">Recommended TV Library</h4>';
+                    html += '<div class="inputContainer">';
+                    html += '<label class="inputLabel inputLabelUnfocused">Folder Path:</label>';
+                    html += '<div style="display: flex; gap: 0.5em; align-items: center;">';
+                    html += '<input type="text" class="emby-input" readonly value="' + tvPath + '" style="flex: 1; font-family: monospace;" />';
+                    html += '<button is="emby-button" type="button" class="raised copy-button" data-path="' + tvPath + '" style="min-width: 80px;">Copy</button>';
+                    html += '</div>';
+                    html += '<div class="fieldDescription" style="margin-top: 0.5em;">Suggested Library Name: <strong>' + suggestedTvName + '</strong></div>';
+                    html += '</div>';
+                    html += '</div>';
+                    
+                    // Instructions - now in a more readable format
+                    html += '<div style="margin-top: 2em; padding: 1em; background: rgba(33,150,243,0.1); border-left: 4px solid #2196f3;">';
+                    html += '<h4 style="margin-top: 0;">Setup Instructions</h4>';
+                    html += '<ol style="margin: 0.5em 0; padding-left: 1.5em; line-height: 1.8;">';
+                    html += '<li>Go to <strong>Dashboard → Libraries → Add Media Library</strong></li>';
+                    html += '<li>Create the Movies library:';
+                    html += '<ul style="margin-top: 0.3em;"><li>Select <strong>Movies</strong> as content type</li>';
+                    html += '<li>Add the Movies folder path shown above</li></ul></li>';
+                    html += '<li>Create the TV library:';
+                    html += '<ul style="margin-top: 0.3em;"><li>Select <strong>Shows</strong> as content type</li>';
+                    html += '<li>Add the TV folder path shown above</li></ul></li>';
+                    html += '<li>Set library permissions: <strong>Dashboard → Users → ' + username + ' → Library Access</strong></li>';
+                    html += '</ol>';
+                    html += '</div>';
+                    
+                    html += '</div>';
+                    return html;
+                },
+                
+                /**
+                 * Initializes copy button event handlers.
+                 */
+                initCopyButtons: function(page) {
+                    var self = this;
+                    var copyButtons = page.querySelectorAll('.copy-button');
+                    
+                    copyButtons.forEach(function(button) {
+                        button.addEventListener('click', function(e) {
+                            var btn = e.currentTarget;
+                            var path = btn.getAttribute('data-path');
+                            
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(path)
+                                    .then(function() {
+                                        btn.textContent = 'Copied!';
+                                        setTimeout(function() {
+                                            btn.textContent = 'Copy';
+                                        }, 2000);
+                                    })
+                                    .catch(function(err) {
+                                        console.error('Failed to copy:', err);
+                                        alert('Failed to copy to clipboard');
+                                    });
+                            }
+                        });
+                    });
+                },
+                
+                /**
+                 * Loads plugin configuration.
+                 */
+                loadConfiguration: function(page) {
+                    var self = this;
+                    Dashboard.showLoadingMsg();
+                    
+                    ApiClient.getPluginConfiguration(self.pluginId)
+                        .then(function(config) {
+                            page.querySelector('#movieRecommendationCount').value = config.MovieRecommendationCount || 25;
+                            page.querySelector('#tvRecommendationCount').value = config.TvRecommendationCount || 25;
+                            page.querySelector('#minWatchedItems').value = config.MinWatchedItemsForPersonalization || 3;
+                            page.querySelector('#excludeAbandonedSeries').checked = config.ExcludeAbandonedSeries !== false;
+                            page.querySelector('#abandonedSeriesThreshold').value = config.AbandonedSeriesThresholdDays || 90;
+                            page.querySelector('#favoriteBoost').value = config.FavoriteBoost || 2.0;
+                            page.querySelector('#rewatchBoost').value = config.RewatchBoost || 1.5;
+                            page.querySelector('#recencyDecayHalfLife').value = config.RecencyDecayHalfLifeDays || 365;
+                            page.querySelector('#maxVocabularyActors').value = config.MaxVocabularyActors || 500;
+                            page.querySelector('#maxVocabularyDirectors').value = config.MaxVocabularyDirectors || 0;
+                            page.querySelector('#maxVocabularyTags').value = config.MaxVocabularyTags || 500;
+                            
+                            self.updateFieldVisibility(page);
+                            Dashboard.hideLoadingMsg();
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to load configuration:', error);
+                            Dashboard.hideLoadingMsg();
+                        });
+                },
+                
+                /**
+                 * Updates field visibility based on configuration.
+                 */
+                updateFieldVisibility: function(page) {
+                    var excludeAbandoned = page.querySelector('#excludeAbandonedSeries').checked;
+                    var thresholdContainer = page.querySelector('#abandonedSeriesThresholdContainer');
+                    thresholdContainer.style.display = excludeAbandoned ? 'block' : 'none';
+                },
+                
+                /**
+                 * Saves plugin configuration.
+                 */
+                saveConfiguration: function(page) {
+                    var self = this;
+                    Dashboard.showLoadingMsg();
+                    
+                    ApiClient.getPluginConfiguration(self.pluginId)
+                        .then(function(config) {
+                            config.MovieRecommendationCount = parseInt(page.querySelector('#movieRecommendationCount').value);
+                            config.TvRecommendationCount = parseInt(page.querySelector('#tvRecommendationCount').value);
+                            config.MinWatchedItemsForPersonalization = parseInt(page.querySelector('#minWatchedItems').value);
+                            config.ExcludeAbandonedSeries = page.querySelector('#excludeAbandonedSeries').checked;
+                            config.AbandonedSeriesThresholdDays = parseInt(page.querySelector('#abandonedSeriesThreshold').value);
+                            config.FavoriteBoost = parseFloat(page.querySelector('#favoriteBoost').value);
+                            config.RewatchBoost = parseFloat(page.querySelector('#rewatchBoost').value);
+                            config.RecencyDecayHalfLifeDays = parseFloat(page.querySelector('#recencyDecayHalfLife').value);
+                            config.MaxVocabularyActors = parseInt(page.querySelector('#maxVocabularyActors').value);
+                            config.MaxVocabularyDirectors = parseInt(page.querySelector('#maxVocabularyDirectors').value);
+                            config.MaxVocabularyTags = parseInt(page.querySelector('#maxVocabularyTags').value);
+                            
+                            return ApiClient.updatePluginConfiguration(self.pluginId, config);
+                        })
+                        .then(function(result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to save configuration:', error);
+                            Dashboard.hideLoadingMsg();
+                        });
+                },
+                
+                /**
+                 * Loads benchmark results from the API.
+                 */
+                loadBenchmarkResults: function(page) {
+                    var self = this;
+                    var container = page.querySelector('#benchmarkResultsContainer');
+                    var downloadBtn = page.querySelector('#downloadBenchmarkResults');
+                    
+                    container.innerHTML = '<p>Loading benchmark results...</p>';
+                    downloadBtn.style.display = 'none';
+                    
+                    ApiClient.getJSON(ApiClient.getUrl('LocalRecs/Benchmark/Results'))
+                        .then(function(response) {
+                            if (response && response.results) {
+                                var lastModified = new Date(response.lastModified);
+                                var formattedDate = lastModified.toLocaleString();
+                                
+                                var html = '<div style="margin-top: 1em;">';
+                                html += '<h3>Latest Benchmark Results</h3>';
+                                html += '<p style="color: #999;">Last run: ' + self.escapeHtml(formattedDate) + '</p>';
+                                html += '<pre style="background: #000; border: 1px solid #333; padding: 1em; overflow-x: auto; white-space: pre; font-family: monospace; font-size: 0.9em;">';
+                                html += self.escapeHtml(response.results);
+                                html += '</pre>';
+                                html += '</div>';
+                                
+                                container.innerHTML = html;
+                                downloadBtn.style.display = 'inline-block';
+                            } else {
+                                container.innerHTML = '<p>No benchmark results available.</p>';
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to load benchmark results:', error);
+                            if (error.status === 404) {
+                                container.innerHTML = '<p style="color: #ffc107;">No benchmark results found. Run the benchmark task first.</p>';
+                            } else {
+                                container.innerHTML = '<p style="color: #ff5252;">Failed to load benchmark results.</p>';
+                            }
+                        });
+                },
+                
+                /**
+                 * Downloads benchmark results as a text file.
+                 */
+                downloadBenchmarkResults: function() {
+                    var self = this;
+                    ApiClient.getJSON(ApiClient.getUrl('LocalRecs/Benchmark/Results'))
+                        .then(function(response) {
+                            if (response && response.results) {
+                                var blob = new Blob([response.results], { type: 'text/plain' });
+                                var url = window.URL.createObjectURL(blob);
+                                var a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'benchmark-results-' + new Date().toISOString().replace(/:/g, '-').split('.')[0] + '.txt';
+                                document.body.appendChild(a);
+                                a.click();
+                                setTimeout(function() {
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                }, 100);
+                            } else {
+                                alert('No benchmark results available to download.');
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to download benchmark results:', error);
+                            alert('Failed to download benchmark results.');
+                        });
+                }
+            };
+            
+            // Page initialization
+            document.getElementById('LocalRecsConfigPage').addEventListener('pageshow', function() {
+                var page = this;
+                
+                if (LocalRecsConfig.initialized) {
+                    if (page.querySelector('.tab-button-setup').classList.contains('ui-btn-active')) {
+                        LocalRecsConfig.loadSetupStatus(page);
+                    }
+                    return;
+                }
+                
+                LocalRecsConfig.initialized = true;
+                
+                // Initialize tabs
+                LocalRecsConfig.initTabs(page);
+                
+                // Load setup status (default tab)
+                LocalRecsConfig.loadSetupStatus(page);
+                
+                // Load configuration for settings tab
+                LocalRecsConfig.loadConfiguration(page);
+                
+                // Setup event listeners for settings
+                page.querySelector('#excludeAbandonedSeries').addEventListener('change', function() {
+                    LocalRecsConfig.updateFieldVisibility(page);
+                });
+                
+                // Actions tab - link to scheduled tasks
+                page.querySelector('#triggerRefreshButton').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Dashboard.navigate('dashboard/tasks');
+                });
+                
+                page.querySelector('#triggerBenchmarkButton').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Dashboard.navigate('dashboard/tasks');
+                });
+                
+                // Benchmark results
+                page.querySelector('#refreshBenchmarkResults').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    LocalRecsConfig.loadBenchmarkResults(page);
+                });
+                
+                page.querySelector('#downloadBenchmarkResults').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    LocalRecsConfig.downloadBenchmarkResults();
+                });
+            });
+            
+            document.getElementById('LocalRecsConfigForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                LocalRecsConfig.saveConfiguration(document.getElementById('LocalRecsConfigPage'));
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>

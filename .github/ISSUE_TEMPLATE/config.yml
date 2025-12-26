@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/rdpharr/jellyfin-plugin-localrecs/discussions
+    about: Ask questions, share ideas, and discuss with the community
+  - name: Documentation
+    url: https://github.com/rdpharr/jellyfin-plugin-localrecs#readme
+    about: Read the README and setup guides
+  - name: Design Documentation
+    url: https://github.com/rdpharr/jellyfin-plugin-localrecs/blob/main/DESIGN.md
+    about: Technical architecture and design details

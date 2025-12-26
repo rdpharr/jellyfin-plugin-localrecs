@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <!-- Timeout for individual test in milliseconds (2 minutes) -->
+    <TestSessionTimeout>120000</TestSessionTimeout>
+  </RunConfiguration>
+  <xUnit>
+    <!-- Parallel test execution settings -->
+    <MaxParallelThreads>0</MaxParallelThreads>
+    <ParallelizeAssembly>false</ParallelizeAssembly>
+    <ParallelizeTestCollections>true</ParallelizeTestCollections>
+  </xUnit>
+</RunSettings>

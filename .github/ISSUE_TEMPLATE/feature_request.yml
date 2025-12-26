@@ -1,0 +1,86 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: I also thought about...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: use-case
+    attributes:
+      label: Use Case
+      description: How would this feature benefit users?
+      options:
+        - Improves recommendation quality
+        - Better performance/efficiency
+        - Easier setup/configuration
+        - Better privacy/security
+        - Better compatibility
+        - New recommendation strategy
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Important
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples about the feature request
+      placeholder: Additional details...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this hasn't been requested
+          required: true
+        - label: This feature aligns with the plugin's privacy-first philosophy
+          required: true
+        - label: I understand this is maintained by volunteers and there's no timeline guarantee
+          required: true
