@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.2.1.0",
+        "changelog": "Fix NFO metadata parsing\n- Fixed XML encoding (UTF-16 to UTF-8) so Jellyfin reads runtime correctly\n- Added cast, directors, and writers to NFO files\n- Added fileinfo/streamdetails for video/audio/subtitle stream selectors",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/download/v0.2.1/jellyfin-plugin-localrecs-v0.2.1.zip",
+        "checksum": "f0c7642892ea188e559df11cebc5a781",
+        "timestamp": "2025-12-26T00:00:00Z"
+      },
+      {
         "version": "0.2.0.0",
         "changelog": "NFO metadata and trailer support\n- NFO files with full metadata (runtime, ratings, genres, studios, tags)\n- Local trailer support via -trailer.strm files\n- Movie folder structure for better metadata handling\n- Fixed copy buttons on setup page\n- Improved documentation",
         "targetAbi": "10.11.0.0",

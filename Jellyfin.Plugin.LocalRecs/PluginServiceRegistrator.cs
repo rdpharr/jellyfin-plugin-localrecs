@@ -36,7 +36,8 @@ namespace Jellyfin.Plugin.LocalRecs
             serviceCollection.AddSingleton<RecommendationRefreshService>();
 
             // NFO Writer for metadata files
-            serviceCollection.AddSingleton<NfoWriter>();
+            serviceCollection.AddSingleton(sp =>
+                new NfoWriter(sp.GetRequiredService<MediaBrowser.Controller.Library.ILibraryManager>()));
 
             // Phase 7: Virtual Library Services
             // Use lazy initialization to ensure Plugin.Instance is available

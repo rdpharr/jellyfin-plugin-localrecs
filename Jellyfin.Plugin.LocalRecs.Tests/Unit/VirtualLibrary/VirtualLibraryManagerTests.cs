@@ -30,7 +30,12 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             Directory.CreateDirectory(_testBasePath);
 
             _mockLibraryManager = new Mock<ILibraryManager>();
-            _nfoWriter = new NfoWriter();
+
+            // Setup GetPeople to return empty list by default
+            _mockLibraryManager.Setup(m => m.GetPeople(It.IsAny<MediaBrowser.Controller.Entities.BaseItem>()))
+                .Returns(new System.Collections.Generic.List<MediaBrowser.Controller.Entities.PersonInfo>());
+
+            _nfoWriter = new NfoWriter(_mockLibraryManager.Object);
             _manager = new VirtualLibraryManager(
                 NullLogger<VirtualLibraryManager>.Instance,
                 _mockLibraryManager.Object,

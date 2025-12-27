@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-12-26
+
+### Fixed
+
+- **NFO Encoding**: Fixed XML encoding from UTF-16 to UTF-8 so Jellyfin properly reads metadata (runtime, etc.)
+- **Cast & Crew**: NFO files now include actors, directors, and writers from source media
+- **Stream Details**: NFO files now include video/audio/subtitle stream information for proper stream selector display
+
+### Added
+
+- **FileInfo Section**: NFO files now contain `<fileinfo><streamdetails>` with codec, bitrate, resolution, framerate, language, and channel information
+
 ## [0.2.0] - 2025-12-26
 
 ### Added
@@ -72,5 +84,6 @@ Privacy-first personalized recommendations for Jellyfin based on local watch his
 - No collaborative filtering (recommendations based solely on individual user's history)
 - Series recommendations based on series-level metadata only (not individual episodes)
 
+[0.2.1]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.1
 [0.2.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.1.0
