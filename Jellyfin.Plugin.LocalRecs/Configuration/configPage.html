@@ -355,6 +355,7 @@
                             var btn = e.currentTarget;
                             var path = btn.getAttribute('data-path');
                             
+                            // Try modern clipboard API first
                             if (navigator.clipboard && navigator.clipboard.writeText) {
                                 navigator.clipboard.writeText(path)
                                     .then(function() {
@@ -364,12 +365,55 @@
                                         }, 2000);
                                     })
                                     .catch(function(err) {
-                                        console.error('Failed to copy:', err);
-                                        alert('Failed to copy to clipboard');
+                                        console.error('Clipboard API failed:', err);
+                                        self.fallbackCopyToClipboard(path, btn);
                                     });
+                            } else {
+                                // Fallback for browsers without clipboard API
+                                self.fallbackCopyToClipboard(path, btn);
                             }
                         });
                     });
+                },
+                
+                /**
+                 * Fallback copy method using a temporary textarea element.
+                 */
+                fallbackCopyToClipboard: function(text, btn) {
+                    var textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.top = '0';
+                    textArea.style.left = '0';
+                    textArea.style.width = '2em';
+                    textArea.style.height = '2em';
+                    textArea.style.padding = '0';
+                    textArea.style.border = 'none';
+                    textArea.style.outline = 'none';
+                    textArea.style.boxShadow = 'none';
+                    textArea.style.background = 'transparent';
+                    
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        var successful = document.execCommand('copy');
+                        if (successful) {
+                            btn.textContent = 'Copied!';
+                            setTimeout(function() {
+                                btn.textContent = 'Copy';
+                            }, 2000);
+                        } else {
+                            console.error('execCommand copy failed');
+                            alert('Failed to copy to clipboard. Please copy manually.');
+                        }
+                    } catch (err) {
+                        console.error('Fallback copy failed:', err);
+                        alert('Failed to copy to clipboard. Please copy manually.');
+                    }
+                    
+                    document.body.removeChild(textArea);
                 },
                 
                 /**
