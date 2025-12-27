@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Jellyfin.Plugin.LocalRecs.Models;
-using Jellyfin.Plugin.LocalRecs.Services;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -21,7 +20,6 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
     {
         private readonly ILogger<VirtualLibraryManager> _logger;
         private readonly ILibraryManager _libraryManager;
-        private readonly NfoWriter _nfoWriter;
         private readonly string _virtualLibraryBasePath;
 
         /// <summary>
@@ -34,18 +32,15 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
         /// </summary>
         /// <param name="logger">Logger instance.</param>
         /// <param name="libraryManager">Library manager for media access.</param>
-        /// <param name="nfoWriter">NFO file writer for metadata.</param>
         /// <param name="virtualLibraryBasePath">Base path for virtual libraries.</param>
         /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
         public VirtualLibraryManager(
             ILogger<VirtualLibraryManager> logger,
             ILibraryManager libraryManager,
-            NfoWriter nfoWriter,
             string virtualLibraryBasePath)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _libraryManager = libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));
-            _nfoWriter = nfoWriter ?? throw new ArgumentNullException(nameof(nfoWriter));
             _virtualLibraryBasePath = virtualLibraryBasePath ?? throw new ArgumentNullException(nameof(virtualLibraryBasePath));
         }
 
@@ -259,8 +254,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
 
             try
             {
-                // Delete the entire directory and recreate it
-                // This is cleaner than selective file deletion and helps prevent stale metadata
+                // Delete the entire directory and recreate it for a clean slate
                 _logger.LogDebug("Deleting entire virtual library directory: {Path}", libraryPath);
                 Directory.Delete(libraryPath, recursive: true);
 
@@ -346,7 +340,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
             }
             else
             {
-                // For movies, create a folder with .strm, .nfo, and trailer files
+                // For movies, create a folder with .strm and trailer files
                 CreateMovieFolderStructure(libraryPath, item);
             }
         }
@@ -354,7 +348,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
         private void CreateMovieFolderStructure(string libraryPath, BaseItem item)
         {
             // Create movie folder: "Movie Name (Year) [tmdbid-123]"
-            var folderName = GenerateMovieFolderName(item);
+            var folderName = GenerateFolderName(item);
             var movieFolderPath = Path.Combine(libraryPath, folderName);
 
             try
@@ -368,16 +362,11 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
                 var strmPath = Path.Combine(movieFolderPath, baseFilename + ".strm");
                 File.WriteAllText(strmPath, item.Path ?? string.Empty);
 
-                // 2. Create the .nfo file with metadata (runtime, etc.)
-                var nfoPath = Path.Combine(movieFolderPath, baseFilename + ".nfo");
-                var nfoContent = _nfoWriter.GenerateMovieNfo(item);
-                File.WriteAllText(nfoPath, nfoContent);
-
-                // 3. Create trailer .strm files if the source has local trailers
+                // 2. Create trailer .strm files if the source has local trailers
                 var trailerCount = CreateTrailerStrmFiles(movieFolderPath, baseFilename, item);
 
                 _logger.LogDebug(
-                    "Created movie folder: {FolderName} with .strm, .nfo, and {TrailerCount} trailer(s)",
+                    "Created movie folder: {FolderName} with .strm and {TrailerCount} trailer(s)",
                     folderName,
                     trailerCount);
             }
@@ -391,13 +380,12 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
         /// <summary>
         /// Creates .strm files for local trailers using the -trailer suffix.
         /// </summary>
-        /// <param name="movieFolderPath">Path to the movie folder.</param>
-        /// <param name="baseFilename">Base filename for the movie (without extension).</param>
-        /// <param name="item">The movie item.</param>
+        /// <param name="folderPath">Path to the folder where trailer files will be created.</param>
+        /// <param name="baseFilename">Base filename for the trailers (without extension).</param>
+        /// <param name="item">The media item to find trailers for.</param>
         /// <returns>Number of trailer files created.</returns>
-        private int CreateTrailerStrmFiles(string movieFolderPath, string baseFilename, BaseItem item)
+        private int CreateTrailerStrmFiles(string folderPath, string baseFilename, BaseItem item)
         {
-            // Get local trailer paths for this item
             var trailerPaths = GetLocalTrailerPaths(item);
             if (trailerPaths.Count == 0)
             {
@@ -406,21 +394,13 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
 
             for (int i = 0; i < trailerPaths.Count; i++)
             {
-                var trailerSourcePath = trailerPaths[i];
-
                 // Use -trailer suffix for single trailer, -trailer1, -trailer2, etc. for multiple
-                string trailerFilename;
-                if (trailerPaths.Count == 1)
-                {
-                    trailerFilename = baseFilename + "-trailer.strm";
-                }
-                else
-                {
-                    trailerFilename = baseFilename + $"-trailer{i + 1}.strm";
-                }
+                var trailerFilename = trailerPaths.Count == 1
+                    ? $"{baseFilename}-trailer.strm"
+                    : $"{baseFilename}-trailer{i + 1}.strm";
 
-                var trailerStrmPath = Path.Combine(movieFolderPath, trailerFilename);
-                File.WriteAllText(trailerStrmPath, trailerSourcePath);
+                var trailerStrmPath = Path.Combine(folderPath, trailerFilename);
+                File.WriteAllText(trailerStrmPath, trailerPaths[i]);
             }
 
             return trailerPaths.Count;
@@ -499,39 +479,31 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
             return trailerPaths;
         }
 
-        private string GenerateMovieFolderName(BaseItem item)
+        private string GenerateFolderName(BaseItem item)
         {
             var title = SanitizeFilename(item.Name ?? "Unknown");
             var year = item.ProductionYear ?? 0;
             var providerId = GetProviderId(item);
 
-            if (year > 0)
-            {
-                return $"{title} ({year}) [{providerId}]";
-            }
-
-            return $"{title} [{providerId}]";
+            return year > 0
+                ? $"{title} ({year}) [{providerId}]"
+                : $"{title} [{providerId}]";
         }
 
         private void CreateSeriesStrmStructure(string libraryPath, Series series)
         {
             // Create series folder: "Series Name (Year) [tvdbid-123]"
-            var seriesFolderName = GenerateSeriesFolderName(series);
+            var seriesFolderName = GenerateFolderName(series);
             var seriesPath = Path.Combine(libraryPath, seriesFolderName);
 
             try
             {
                 Directory.CreateDirectory(seriesPath);
 
-                // 1. Create tvshow.nfo with series metadata (runtime, etc.)
-                var tvshowNfoPath = Path.Combine(seriesPath, "tvshow.nfo");
-                var tvshowNfoContent = _nfoWriter.GenerateSeriesNfo(series);
-                File.WriteAllText(tvshowNfoPath, tvshowNfoContent);
+                // 1. Create trailer .strm files if the source has local trailers
+                var trailerCount = CreateTrailerStrmFiles(seriesPath, seriesFolderName, series);
 
-                // 2. Create trailer .strm files if the source has local trailers
-                var trailerCount = CreateSeriesTrailerStrmFiles(seriesPath, seriesFolderName, series);
-
-                // 3. Get all episodes for this series
+                // 2. Get all episodes for this series
                 var episodes = _libraryManager.GetItemList(new InternalItemsQuery
                 {
                     ParentId = series.Id,
@@ -574,17 +546,12 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
                         var episodeStrmPath = Path.Combine(seasonPath, episodeBaseFilename + ".strm");
                         File.WriteAllText(episodeStrmPath, episode.Path);
 
-                        // Create episode .nfo file with runtime
-                        var episodeNfoPath = Path.Combine(seasonPath, episodeBaseFilename + ".nfo");
-                        var episodeNfoContent = _nfoWriter.GenerateEpisodeNfo(episode);
-                        File.WriteAllText(episodeNfoPath, episodeNfoContent);
-
                         episodeCount++;
                     }
                 }
 
                 _logger.LogDebug(
-                    "Created series folder structure: {SeriesFolder} with {EpisodeCount} episodes, tvshow.nfo, and {TrailerCount} trailer(s)",
+                    "Created series folder structure: {SeriesFolder} with {EpisodeCount} episodes and {TrailerCount} trailer(s)",
                     seriesFolderName,
                     episodeCount,
                     trailerCount);
@@ -594,44 +561,6 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
                 _logger.LogError(ex, "Failed to create series folder structure for {SeriesName}", series.Name);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Creates .strm files for series-level local trailers using the -trailer suffix.
-        /// </summary>
-        /// <param name="seriesPath">Path to the series folder.</param>
-        /// <param name="seriesFolderName">Series folder name (used as base filename).</param>
-        /// <param name="series">The series item.</param>
-        /// <returns>Number of trailer files created.</returns>
-        private int CreateSeriesTrailerStrmFiles(string seriesPath, string seriesFolderName, Series series)
-        {
-            // Get local trailer paths for this series
-            var trailerPaths = GetLocalTrailerPaths(series);
-            if (trailerPaths.Count == 0)
-            {
-                return 0;
-            }
-
-            for (int i = 0; i < trailerPaths.Count; i++)
-            {
-                var trailerSourcePath = trailerPaths[i];
-
-                // Use -trailer suffix for single trailer, -trailer1, -trailer2, etc. for multiple
-                string trailerFilename;
-                if (trailerPaths.Count == 1)
-                {
-                    trailerFilename = seriesFolderName + "-trailer.strm";
-                }
-                else
-                {
-                    trailerFilename = seriesFolderName + $"-trailer{i + 1}.strm";
-                }
-
-                var trailerStrmPath = Path.Combine(seriesPath, trailerFilename);
-                File.WriteAllText(trailerStrmPath, trailerSourcePath);
-            }
-
-            return trailerPaths.Count;
         }
 
         /// <summary>
@@ -646,20 +575,6 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
 
             // Format: "SeriesName - S01E01 - Episode Title"
             return $"{seriesName} - S{seasonNum:D2}E{episodeNum:D2} - {episodeName}";
-        }
-
-        private string GenerateSeriesFolderName(Series series)
-        {
-            var title = SanitizeFilename(series.Name ?? "Unknown");
-            var year = series.ProductionYear ?? 0;
-            var providerId = GetProviderId(series);
-
-            if (year > 0)
-            {
-                return $"{title} ({year}) [{providerId}]";
-            }
-
-            return $"{title} [{providerId}]";
         }
 
         private string GetProviderId(BaseItem item)

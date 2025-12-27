@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Jellyfin.Plugin.LocalRecs.Models;
-using Jellyfin.Plugin.LocalRecs.Services;
 using Jellyfin.Plugin.LocalRecs.VirtualLibrary;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
@@ -21,7 +20,6 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
         private readonly string _testBasePath;
         private readonly VirtualLibraryManager _manager;
         private readonly Mock<ILibraryManager> _mockLibraryManager;
-        private readonly NfoWriter _nfoWriter;
 
         public VirtualLibraryManagerTests()
         {
@@ -31,15 +29,9 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
 
             _mockLibraryManager = new Mock<ILibraryManager>();
 
-            // Setup GetPeople to return empty list by default
-            _mockLibraryManager.Setup(m => m.GetPeople(It.IsAny<MediaBrowser.Controller.Entities.BaseItem>()))
-                .Returns(new System.Collections.Generic.List<MediaBrowser.Controller.Entities.PersonInfo>());
-
-            _nfoWriter = new NfoWriter(_mockLibraryManager.Object);
             _manager = new VirtualLibraryManager(
                 NullLogger<VirtualLibraryManager>.Instance,
                 _mockLibraryManager.Object,
-                _nfoWriter,
                 _testBasePath);
         }
 
@@ -124,7 +116,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             // Act
             _manager.SyncRecommendations(userId, recommendations, MediaType.Movie);
 
-            // Assert - Movies are now in folders with .strm, .nfo, and optional trailer files
+            // Assert - Movies are now in folders with .strm and optional trailer files
             var moviePath = _manager.GetUserLibraryPath(userId, MediaType.Movie);
             var movieFolders = Directory.GetDirectories(moviePath);
             movieFolders.Should().HaveCount(1);
@@ -137,10 +129,6 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             var mainStrmFile = strmFiles.First(f => !f.Contains("-trailer"));
             var strmContent = File.ReadAllText(mainStrmFile);
             strmContent.Should().Be("/media/movies/TestMovie.mkv");
-
-            // Check for .nfo file
-            var nfoFiles = Directory.GetFiles(movieFolders[0], "*.nfo");
-            nfoFiles.Should().HaveCount(1);
         }
 
         [Fact]
