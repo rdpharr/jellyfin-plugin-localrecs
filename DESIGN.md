@@ -169,6 +169,11 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 
 **Output:** Normalized user profile vector (same dimensionality as item embeddings)
 
+**Rating Statistics:**
+- Computes average community rating (0-10 scale) and critic rating (0-100 scale) from watched items
+- Calculates standard deviation for both rating types to understand user's rating tolerance
+- Used for optional rating proximity weighting in recommendation scoring
+
 **Watch History Detection:**
 - Only fully-watched items (Played = true) count toward profile
 - For movies: item must be fully played
@@ -191,12 +196,66 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 
 **Scoring Algorithm:**
 1. Compute cosine similarity between user taste vector and each candidate item embedding
-2. Rank candidates by descending similarity score
-3. Return top N items (configurable, default: 25)
+2. Optionally blend with rating proximity score (if enabled):
+   - **Rating Proximity:** Measures how close an item's ratings are to the user's average ratings
+   - **Community Rating Proximity:** Based on 0-10 scale (e.g., IMDb/TMDb ratings)
+   - **Critic Rating Proximity:** Based on 0-100 scale (e.g., Rotten Tomatoes/Metacritic)
+   - **Blending:** `final_score = (1 - weight) * cosine_similarity + weight * rating_proximity`
+   - **Default:** Disabled (pure content similarity)
+   - **When enabled:** Default weight = 0.2 (20% rating proximity, 80% content similarity)
+3. Rank candidates by descending similarity score
+4. Return top N items (configurable, default: 25)
+
+**Rating Proximity Feature (Optional):**
+- **Purpose:** Boosts items with ratings similar to user's viewing history
+- **Use case:** Users who prefer highly-rated content get more highly-rated recommendations
+- **Calculation:** For each rating type (community/critic), compute proximity as `1 - (|item_rating - user_avg_rating| / scale)`
+- **Fallback:** If item or user lacks ratings, uses neutral value (0.5)
+- **Configurable:** Can be enabled/disabled and weight adjusted (0.0 to 1.0) via plugin settings
 
 **Cold-start strategy:**
 - Users with <3 watched items receive top-rated content from the library
 - No personalization until sufficient watch history exists
+
+**Rating Proximity Enhancement:**
+
+The Recommendation Engine supports an optional rating proximity feature that blends content-based similarity with rating-based similarity. This helps users discover items that match both their content preferences and their rating preferences.
+
+**How It Works:**
+1. **User Profile Service** computes average ratings from watch history:
+   - Average community rating (0-10 scale) from watched items
+   - Average critic rating (0-100 scale) from watched items
+   - Standard deviation for each rating type (future use)
+
+2. **Recommendation Engine** computes proximity scores:
+   - For each candidate item, compute rating difference from user's averages
+   - Convert difference to proximity score: `1 - (absolute_difference / scale)`
+   - Average community and critic proximities for final rating proximity score
+   - If item or user lacks ratings, use neutral value (0.5)
+
+3. **Final Score Blending:**
+   - `final_score = (1 - weight) * cosine_similarity + weight * rating_proximity`
+   - **weight = 0.0:** Pure content similarity (default)
+   - **weight = 0.2:** 80% content, 20% rating proximity (recommended)
+   - **weight = 1.0:** Pure rating matching (not recommended)
+
+**Example:**
+- User's average community rating: 7.5/10
+- Candidate item rating: 8.0/10
+- Rating difference: 0.5
+- Community proximity: 1 - (0.5 / 10) = 0.95 (very close)
+- If content similarity = 0.80 and weight = 0.2:
+  - Final score = 0.8 * 0.80 + 0.2 * 0.95 = 0.64 + 0.19 = 0.83
+
+**When to Enable:**
+- Users who strongly prefer highly-rated or critically-acclaimed content
+- Libraries with comprehensive rating metadata
+- Users with consistent rating patterns in their watch history
+
+**When to Disable (Default):**
+- Pure content-based recommendations based on genres, actors, directors
+- Libraries with sparse or inconsistent rating metadata
+- Users with diverse rating tolerances
 
 #### 7. Virtual Library Manager
 **Purpose:** Expose recommendations as per-user virtual libraries with complete metadata.
@@ -361,8 +420,9 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 3. Vocabulary Builder creates feature vocabularies from library metadata
 4. Embedding Service computes TF-IDF vectors for all items
 5. For each user:
-   - User Profile Service aggregates watch history into taste vector
-   - Recommendation Engine scores all unwatched candidates (excludes items with playback progress)
+   - User Profile Service aggregates watch history into taste vector and computes rating statistics
+   - Recommendation Engine scores all unwatched candidates using content similarity (and optionally rating proximity)
+   - Excludes items with playback progress
    - Top N items selected per media type (movies, TV)
    - Virtual Library Manager clears old .strm files and creates new ones for this user
 6. Recommendation Refresh Service logs completion
@@ -411,6 +471,7 @@ All settings exposed via plugin configuration UI and stored in Jellyfin's plugin
 - **Performance tuning:** Vocabulary limits for actors, directors, and tags
 - **Cold-start threshold:** Minimum watched items for personalization (default: 3)
 - **Series filtering:** Exclude abandoned series from recommendations (configurable threshold)
+- **Rating proximity:** Enable/disable rating-based scoring and adjust blending weight (default: disabled)
 
 ## Testing Strategy
 

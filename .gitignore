@@ -230,3 +230,6 @@ test-error.txt
 # Developer diagnostics
 *.ps1
 *.png
+
+# Docker
+docker-compose.yml

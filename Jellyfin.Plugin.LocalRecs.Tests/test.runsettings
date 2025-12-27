@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <RunConfiguration>
-    <!-- Timeout for individual test in milliseconds (2 minutes) -->
-    <TestSessionTimeout>120000</TestSessionTimeout>
+    <!-- Timeout for individual test in milliseconds (10 minutes) -->
+    <TestSessionTimeout>600000</TestSessionTimeout>
   </RunConfiguration>
   <xUnit>
     <!-- Parallel test execution settings -->

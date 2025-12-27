@@ -84,15 +84,24 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             // Compute weighted taste vector
             var tasteVector = ComputeTasteVector(watchRecords, embeddings, config);
 
+            // Compute rating statistics from watched items
+            var (avgCommunity, avgCritic, communityStdDev, criticStdDev) = ComputeRatingStatistics(watchRecords);
+
             var profile = new UserProfile(userId, tasteVector)
             {
-                WatchedItemCount = watchRecords.Count
+                WatchedItemCount = watchRecords.Count,
+                AverageCommunityRating = avgCommunity,
+                AverageCriticRating = avgCritic,
+                CommunityRatingStdDev = communityStdDev,
+                CriticRatingStdDev = criticStdDev
             };
 
             _logger.LogInformation(
-                "Built profile for user {UserId}: {Count} items",
+                "Built profile for user {UserId}: {Count} items, AvgCommunity={AvgCommunity:F2}, AvgCritic={AvgCritic:F2}",
                 userId,
-                watchRecords.Count);
+                watchRecords.Count,
+                avgCommunity ?? 0,
+                avgCritic ?? 0);
 
             return profile;
         }
@@ -146,7 +155,9 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 var record = new WatchRecord(itemId, userId, userData.LastPlayedDate ?? DateTime.UtcNow)
                 {
                     IsFavorite = userData.IsFavorite,
-                    PlayCount = userData.PlayCount > 0 ? userData.PlayCount : 1
+                    PlayCount = userData.PlayCount > 0 ? userData.PlayCount : 1,
+                    CommunityRating = item.CommunityRating,
+                    CriticRating = item.CriticRating
                 };
 
                 records.Add(record);
@@ -217,6 +228,55 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             }
 
             return VectorMath.Normalize(weightedSum);
+        }
+
+        /// <summary>
+        /// Computes rating statistics from watched items.
+        /// Uses ratings cached in WatchRecord to avoid duplicate library lookups.
+        /// </summary>
+        /// <param name="watchRecords">User's watch records (with ratings already populated).</param>
+        /// <returns>Rating statistics with averages and standard deviations.</returns>
+        private (float? AvgCommunityRating, float? AvgCriticRating, float CommunityStdDev, float CriticStdDev) ComputeRatingStatistics(
+            List<WatchRecord> watchRecords)
+        {
+            // Extract ratings from watch records (already populated during GetWatchRecords)
+            var communityRatings = watchRecords
+                .Where(r => r.CommunityRating.HasValue)
+                .Select(r => r.CommunityRating!.Value)
+                .ToList();
+
+            var criticRatings = watchRecords
+                .Where(r => r.CriticRating.HasValue)
+                .Select(r => r.CriticRating!.Value)
+                .ToList();
+
+            // Compute community rating statistics
+            float? avgCommunity = null;
+            float communityStdDev = 0f;
+            if (communityRatings.Any())
+            {
+                avgCommunity = communityRatings.Average();
+                if (communityRatings.Count > 1)
+                {
+                    var variance = communityRatings.Average(r => Math.Pow(r - avgCommunity.Value, 2));
+                    communityStdDev = (float)Math.Sqrt(variance);
+                }
+            }
+
+            // Compute critic rating statistics
+            float? avgCritic = null;
+            float criticStdDev = 0f;
+            if (criticRatings.Any())
+            {
+                avgCritic = criticRatings.Average();
+                if (criticRatings.Count > 1)
+                {
+                    var variance = criticRatings.Average(r => Math.Pow(r - avgCritic.Value, 2));
+                    criticStdDev = (float)Math.Sqrt(variance);
+                }
+            }
+
+            return (avgCommunity, avgCritic, communityStdDev, criticStdDev);
         }
     }
 }

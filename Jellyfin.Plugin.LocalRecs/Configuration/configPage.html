@@ -89,6 +89,22 @@
                             <div class="fieldDescription">Time for watch weight to decay by half (default: 365)</div>
                         </div>
                         
+                        <h2 class="sectionTitle">Advanced Features</h2>
+                        
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="enableRatingProximity" name="enableRatingProximity" />
+                                <span>Enable Rating Proximity Weighting</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">Boost recommendations for items with ratings similar to your viewing history</div>
+                        </div>
+                        
+                        <div class="inputContainer" id="ratingProximityWeightContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="ratingProximityWeight">Rating Proximity Weight:</label>
+                            <input is="emby-input" type="number" id="ratingProximityWeight" name="ratingProximityWeight" min="0.0" max="1.0" step="0.05" />
+                            <div class="fieldDescription">How much to blend rating similarity (0.0 = pure content match, 1.0 = pure rating match, default: 0.2)</div>
+                        </div>
+                        
                         <h2 class="sectionTitle">Performance Tuning</h2>
                         
                         <div class="inputContainer">
@@ -436,6 +452,8 @@
                             page.querySelector('#maxVocabularyActors').value = config.MaxVocabularyActors || 500;
                             page.querySelector('#maxVocabularyDirectors').value = config.MaxVocabularyDirectors || 0;
                             page.querySelector('#maxVocabularyTags').value = config.MaxVocabularyTags || 500;
+                            page.querySelector('#enableRatingProximity').checked = config.EnableRatingProximity || false;
+                            page.querySelector('#ratingProximityWeight').value = config.RatingProximityWeight || 0.2;
                             
                             self.updateFieldVisibility(page);
                             Dashboard.hideLoadingMsg();
@@ -453,6 +471,10 @@
                     var excludeAbandoned = page.querySelector('#excludeAbandonedSeries').checked;
                     var thresholdContainer = page.querySelector('#abandonedSeriesThresholdContainer');
                     thresholdContainer.style.display = excludeAbandoned ? 'block' : 'none';
+                    
+                    var enableRatingProximity = page.querySelector('#enableRatingProximity').checked;
+                    var weightContainer = page.querySelector('#ratingProximityWeightContainer');
+                    weightContainer.style.display = enableRatingProximity ? 'block' : 'none';
                 },
                 
                 /**
@@ -475,6 +497,8 @@
                             config.MaxVocabularyActors = parseInt(page.querySelector('#maxVocabularyActors').value);
                             config.MaxVocabularyDirectors = parseInt(page.querySelector('#maxVocabularyDirectors').value);
                             config.MaxVocabularyTags = parseInt(page.querySelector('#maxVocabularyTags').value);
+                            config.EnableRatingProximity = page.querySelector('#enableRatingProximity').checked;
+                            config.RatingProximityWeight = parseFloat(page.querySelector('#ratingProximityWeight').value);
                             
                             return ApiClient.updatePluginConfiguration(self.pluginId, config);
                         })
@@ -582,6 +606,10 @@
                 
                 // Setup event listeners for settings
                 page.querySelector('#excludeAbandonedSeries').addEventListener('change', function() {
+                    LocalRecsConfig.updateFieldVisibility(page);
+                });
+                
+                page.querySelector('#enableRatingProximity').addEventListener('change', function() {
                     LocalRecsConfig.updateFieldVisibility(page);
                 });
                 

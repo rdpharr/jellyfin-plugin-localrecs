@@ -24,6 +24,8 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
             MaxVocabularyActors = 500;
             MaxVocabularyDirectors = 0;
             MaxVocabularyTags = 500;
+            EnableRatingProximity = false;
+            RatingProximityWeight = 0.2;
         }
 
         /// <summary>
@@ -84,6 +86,19 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
         public int MaxVocabularyTags { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to enable rating proximity weighting.
+        /// When enabled, items with ratings closer to the user's average ratings get a boost.
+        /// </summary>
+        public bool EnableRatingProximity { get; set; }
+
+        /// <summary>
+        /// Gets or sets the weight for rating proximity in final score (0.0 to 1.0).
+        /// 0.0 = pure content similarity, 1.0 = pure rating match.
+        /// Default: 0.2 (20% rating proximity, 80% content similarity).
+        /// </summary>
+        public double RatingProximityWeight { get; set; }
+
+        /// <summary>
         /// Validates the configuration and returns validation errors.
         /// </summary>
         /// <returns>List of validation error messages, empty if valid.</returns>
@@ -139,6 +154,11 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
             if (MaxVocabularyTags < 0)
             {
                 errors.Add("MaxVocabularyTags must be non-negative (0 = unlimited)");
+            }
+
+            if (RatingProximityWeight < 0 || RatingProximityWeight > 1)
+            {
+                errors.Add("RatingProximityWeight must be between 0.0 and 1.0");
             }
 
             return errors;

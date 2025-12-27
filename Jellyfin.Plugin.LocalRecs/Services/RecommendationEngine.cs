@@ -128,7 +128,12 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                     continue; // Skip if no embedding
                 }
 
-                var score = ScoreCandidate(userProfile, embedding);
+                if (!metadata.TryGetValue(candidateId, out var itemMetadata))
+                {
+                    continue; // Skip if no metadata
+                }
+
+                var score = ScoreCandidate(userProfile, embedding, itemMetadata, config);
 
                 scoredCandidates.Add(score);
             }
@@ -262,21 +267,61 @@ namespace Jellyfin.Plugin.LocalRecs.Services
         }
 
         /// <summary>
-        /// Scores a candidate item against the user's taste profile using cosine similarity.
+        /// Scores a candidate item against the user's taste profile using cosine similarity
+        /// and optionally rating proximity.
         /// </summary>
         /// <param name="userProfile">The user's taste profile.</param>
         /// <param name="candidateEmbedding">The candidate item's embedding.</param>
+        /// <param name="itemMetadata">The candidate item's metadata.</param>
+        /// <param name="config">Plugin configuration.</param>
         /// <returns>Scored recommendation.</returns>
         private ScoredRecommendation ScoreCandidate(
             UserProfile userProfile,
-            ItemEmbedding candidateEmbedding)
+            ItemEmbedding candidateEmbedding,
+            MediaItemMetadata itemMetadata,
+            PluginConfiguration config)
         {
             // Compute cosine similarity between user taste vector and item embedding
-            var score = VectorMath.CosineSimilarity(
+            var cosineSimilarity = VectorMath.CosineSimilarity(
                 userProfile.TasteVector,
                 candidateEmbedding.Vector);
 
-            return new ScoredRecommendation(candidateEmbedding.ItemId, score);
+            // If rating proximity is disabled, return pure cosine similarity
+            if (!config.EnableRatingProximity)
+            {
+                return new ScoredRecommendation(candidateEmbedding.ItemId, cosineSimilarity);
+            }
+
+            // Compute rating proximity components
+            double communityProximity = 0.5; // neutral default
+            double criticProximity = 0.5;    // neutral default
+
+            // Community rating proximity (if both user and item have community ratings)
+            if (itemMetadata.CommunityRating.HasValue && userProfile.AverageCommunityRating.HasValue)
+            {
+                var diff = Math.Abs(itemMetadata.CommunityRating.Value - userProfile.AverageCommunityRating.Value);
+
+                // Community rating is 0-10 scale
+                communityProximity = Math.Max(0, 1.0 - (diff / 10.0));
+            }
+
+            // Critic rating proximity (if both user and item have critic ratings)
+            if (itemMetadata.CriticRating.HasValue && userProfile.AverageCriticRating.HasValue)
+            {
+                var diff = Math.Abs(itemMetadata.CriticRating.Value - userProfile.AverageCriticRating.Value);
+
+                // Critic rating is 0-100 scale
+                criticProximity = Math.Max(0, 1.0 - (diff / 100.0));
+            }
+
+            // Average the two rating proximities
+            var ratingProximity = (communityProximity + criticProximity) / 2.0;
+
+            // Blend cosine similarity with rating proximity
+            var finalScore = ((1 - config.RatingProximityWeight) * cosineSimilarity)
+                           + (config.RatingProximityWeight * ratingProximity);
+
+            return new ScoredRecommendation(candidateEmbedding.ItemId, (float)finalScore);
         }
 
         /// <summary>

@@ -42,5 +42,27 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         /// Gets the dimensionality of the taste vector.
         /// </summary>
         public int Dimensions => TasteVector.Length;
+
+        /// <summary>
+        /// Gets or sets the average community rating (0-10 scale) from watched items.
+        /// Null if user has no watched items with community ratings.
+        /// </summary>
+        public float? AverageCommunityRating { get; set; }
+
+        /// <summary>
+        /// Gets or sets the average critic rating (0-100 scale) from watched items.
+        /// Null if user has no watched items with critic ratings.
+        /// </summary>
+        public float? AverageCriticRating { get; set; }
+
+        /// <summary>
+        /// Gets or sets the standard deviation of community ratings from watched items.
+        /// </summary>
+        public float CommunityRatingStdDev { get; set; }
+
+        /// <summary>
+        /// Gets or sets the standard deviation of critic ratings from watched items.
+        /// </summary>
+        public float CriticRatingStdDev { get; set; }
     }
 }
