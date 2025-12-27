@@ -199,35 +199,42 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 - No personalization until sufficient watch history exists
 
 #### 7. Virtual Library Manager
-**Purpose:** Expose recommendations as per-user virtual libraries.
+**Purpose:** Expose recommendations as per-user virtual libraries with complete metadata.
 
-**Implementation:** `.strm` file-based approach (proven pattern from JellyNext plugin)
+**Implementation:** `.strm` file-based approach with NFO metadata files and local trailer support.
 
 **Directory Structure:**
 ```
 {plugin-data}/virtual-libraries/
 ├── {userId1}/
 │   ├── movies/
-│   │   └── Movie Title (2020) [tmdbid-12345].strm
+│   │   └── Movie Title (2020) [tmdbid-12345]/
+│   │       ├── Movie Title (2020) [tmdbid-12345].strm    # Main movie file
+│   │       ├── Movie Title (2020) [tmdbid-12345].nfo     # Metadata (runtime, etc.)
+│   │       └── Movie Title (2020) [tmdbid-12345]-trailer.strm  # Trailer (if exists)
 │   └── tv/
 │       └── Show Title (2019) [tvdbid-67890]/
+│           ├── tvshow.nfo                                # Series metadata
+│           ├── Show Title (2019) [tvdbid-67890]-trailer.strm   # Series trailer (if exists)
 │           ├── Season 01/
-│           │   ├── S01E01 - Episode Title.strm
-│           │   └── S01E02 - Episode Title.strm
+│           │   ├── Show - S01E01 - Episode Title.strm    # Episode file
+│           │   ├── Show - S01E01 - Episode Title.nfo     # Episode metadata
+│           │   └── Show - S01E02 - Episode Title.strm
 │           └── Season 02/
-│               └── S02E01 - Episode Title.strm
+│               └── Show - S02E01 - Episode Title.strm
 └── {userId2}/
     ├── movies/
     └── tv/
 ```
 
-**Important Notes on .strm Files:**
-- **Movies:** Single `.strm` file containing the path to the original movie file
-- **TV Series:** Folder structure containing `.strm` files for each episode
+**Important Notes on File Types:**
+- **Movies:** Folder containing `.strm`, `.nfo`, and optional `-trailer.strm` files
+- **TV Series:** Folder structure containing:
   - Series folder: `Show Name (Year) [tvdbid-12345]/`
+  - `tvshow.nfo`: Series-level metadata
+  - Series trailers: `Show Name-trailer.strm` (if source has local trailers)
   - Season subfolders: `Season 01/`, `Season 02/`, `Specials/`
-  - Episode files: `S01E01 - Episode Title.strm`
-  - Each episode `.strm` file contains the path to the original episode file
+  - Episode files: `.strm` and `.nfo` pairs for each episode
 
 **Why .strm files?**
 - Standard Jellyfin mechanism for virtual/remote content
@@ -237,10 +244,22 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 - Works across all Jellyfin clients
 - Preserves series/season/episode hierarchy for TV shows
 
+**Why .nfo files?**
+- Provides complete metadata (runtime, ratings, genres, etc.) to Jellyfin
+- Essential for clients like Roku that require local metadata
+- Contains runtime in minutes for proper content length display
+- Follows Jellyfin's standard NFO format (Kodi-compatible)
+
+**Why trailer .strm files?**
+- Enables local trailer playback on all clients (including Roku)
+- Uses `-trailer` suffix naming convention (Jellyfin standard)
+- Points to source trailer files on disk (not remote URLs)
+- Remote trailer URLs don't work on all clients (e.g., Roku)
+
 **Sync Algorithm:** Clear-and-recreate
-1. Delete all existing .strm files and series folders
+1. Delete all existing files and folders
 2. Recreate directory structure
-3. Create fresh .strm files for current recommendations
+3. Create fresh .strm, .nfo, and trailer files for current recommendations
 4. Trigger Jellyfin library scan to update database
 
 **Why clear-and-recreate instead of diff-based sync?**
@@ -248,6 +267,61 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 - Avoids stale metadata issues in Jellyfin's database
 - Relies on Jellyfin's library scanner to clean up orphaned database entries
 - No direct database manipulation required (respects Jellyfin's internal APIs)
+
+#### 7a. NFO Writer Service
+**Purpose:** Generate NFO metadata files for virtual library items.
+
+**Responsibilities:**
+- Generate movie NFO files with runtime, ratings, genres, and provider IDs
+- Generate series NFO files (`tvshow.nfo`) with series-level metadata
+- Generate episode NFO files with episode-specific details
+- Proper XML formatting following Jellyfin/Kodi NFO standards
+
+**NFO Content (Movies):**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<movie>
+    <title>Movie Title</title>
+    <year>2020</year>
+    <runtime>120</runtime>           <!-- Runtime in minutes -->
+    <plot>Movie description...</plot>
+    <rating>7.5</rating>
+    <mpaa>PG-13</mpaa>
+    <genre>Action</genre>
+    <genre>Adventure</genre>
+    <studio>Studio Name</studio>
+    <tmdbid>12345</tmdbid>
+    <imdbid>tt1234567</imdbid>
+</movie>
+```
+
+**NFO Content (TV Series - tvshow.nfo):**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<tvshow>
+    <title>Show Title</title>
+    <year>2019</year>
+    <plot>Series description...</plot>
+    <status>Continuing</status>
+    <tvdbid>67890</tvdbid>
+</tvshow>
+```
+
+**NFO Content (Episodes):**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<episodedetails>
+    <title>Episode Title</title>
+    <season>1</season>
+    <episode>1</episode>
+    <aired>2019-01-15</aired>
+    <runtime>45</runtime>
+    <plot>Episode description...</plot>
+    <showtitle>Show Title</showtitle>
+</episodedetails>
+```
+
+**Key insight:** NFO files ensure that virtual library items display complete metadata including runtime/content length, which is critical for user experience on all clients.
 
 #### 8. Play Status Sync Service
 **Purpose:** Auto-remove recommendations when users start watching them, preventing duplicate "Continue Watching" entries.

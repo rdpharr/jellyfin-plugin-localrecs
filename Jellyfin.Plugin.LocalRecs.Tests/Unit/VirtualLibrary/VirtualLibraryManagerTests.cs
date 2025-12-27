@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Jellyfin.Plugin.LocalRecs.Models;
+using Jellyfin.Plugin.LocalRecs.Services;
 using Jellyfin.Plugin.LocalRecs.VirtualLibrary;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
@@ -19,6 +21,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
         private readonly string _testBasePath;
         private readonly VirtualLibraryManager _manager;
         private readonly Mock<ILibraryManager> _mockLibraryManager;
+        private readonly NfoWriter _nfoWriter;
 
         public VirtualLibraryManagerTests()
         {
@@ -27,9 +30,11 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             Directory.CreateDirectory(_testBasePath);
 
             _mockLibraryManager = new Mock<ILibraryManager>();
+            _nfoWriter = new NfoWriter();
             _manager = new VirtualLibraryManager(
                 NullLogger<VirtualLibraryManager>.Instance,
                 _mockLibraryManager.Object,
+                _nfoWriter,
                 _testBasePath);
         }
 
@@ -114,13 +119,23 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             // Act
             _manager.SyncRecommendations(userId, recommendations, MediaType.Movie);
 
-            // Assert
+            // Assert - Movies are now in folders with .strm, .nfo, and optional trailer files
             var moviePath = _manager.GetUserLibraryPath(userId, MediaType.Movie);
-            var strmFiles = Directory.GetFiles(moviePath, "*.strm");
-            strmFiles.Should().HaveCount(1);
+            var movieFolders = Directory.GetDirectories(moviePath);
+            movieFolders.Should().HaveCount(1);
 
-            var strmContent = File.ReadAllText(strmFiles[0]);
+            // Check for .strm file inside the movie folder
+            var strmFiles = Directory.GetFiles(movieFolders[0], "*.strm");
+            strmFiles.Should().HaveCountGreaterOrEqualTo(1);
+
+            // Check the main .strm file content (not the trailer)
+            var mainStrmFile = strmFiles.First(f => !f.Contains("-trailer"));
+            var strmContent = File.ReadAllText(mainStrmFile);
             strmContent.Should().Be("/media/movies/TestMovie.mkv");
+
+            // Check for .nfo file
+            var nfoFiles = Directory.GetFiles(movieFolders[0], "*.nfo");
+            nfoFiles.Should().HaveCount(1);
         }
 
         [Fact]
@@ -166,9 +181,17 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             };
             _manager.SyncRecommendations(userId, secondRecommendations, MediaType.Movie);
 
-            // Assert - Should only have Movie 2, not Movie 1
+            // Assert - Should only have Movie 2 folder, not Movie 1
             var moviePath = _manager.GetUserLibraryPath(userId, MediaType.Movie);
-            var strmFiles = Directory.GetFiles(moviePath, "*.strm");
+            var movieFolders = Directory.GetDirectories(moviePath);
+            movieFolders.Should().HaveCount(1);
+
+            // Check the folder name contains Movie 2
+            movieFolders[0].Should().Contain("Movie 2");
+
+            // Check the main .strm file content
+            var strmFiles = Directory.GetFiles(movieFolders[0], "*.strm")
+                .Where(f => !f.Contains("-trailer")).ToArray();
             strmFiles.Should().HaveCount(1);
 
             var strmContent = File.ReadAllText(strmFiles[0]);
@@ -236,17 +259,22 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.VirtualLibrary
             // Act
             _manager.SyncRecommendations(userId, recommendations, MediaType.Movie);
 
-            // Assert - Should create a file without invalid characters
+            // Assert - Should create a folder without invalid characters
             var moviePath = _manager.GetUserLibraryPath(userId, MediaType.Movie);
-            var strmFiles = Directory.GetFiles(moviePath, "*.strm");
-            strmFiles.Should().HaveCount(1);
+            var movieFolders = Directory.GetDirectories(moviePath);
+            movieFolders.Should().HaveCount(1);
 
-            // Filename should not contain invalid characters
-            var filename = Path.GetFileName(strmFiles[0]);
-            filename.Should().NotContain(":");
-            filename.Should().NotContain("/");
-            filename.Should().NotContain("\\");
-            filename.Should().NotContain("|");
+            // Folder name should not contain invalid characters
+            var folderName = Path.GetFileName(movieFolders[0]);
+            folderName.Should().NotContain(":");
+            folderName.Should().NotContain("/");
+            folderName.Should().NotContain("\\");
+            folderName.Should().NotContain("|");
+
+            // .strm file should exist inside the folder
+            var strmFiles = Directory.GetFiles(movieFolders[0], "*.strm")
+                .Where(f => !f.Contains("-trailer")).ToArray();
+            strmFiles.Should().HaveCount(1);
         }
     }
 }
