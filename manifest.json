@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.2.0.0",
+        "changelog": "NFO metadata and trailer support\n- NFO files with full metadata (runtime, ratings, genres, studios, tags)\n- Local trailer support via -trailer.strm files\n- Movie folder structure for better metadata handling\n- Fixed copy buttons on setup page\n- Improved documentation",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/download/v0.2.0/jellyfin-plugin-localrecs-v0.2.0.zip",
+        "checksum": "b72a293846bbbd1a9f1fd1f5b843d10d",
+        "timestamp": "2025-12-26T00:00:00Z"
+      },
+      {
         "version": "0.1.0.0",
         "changelog": "Initial beta release\n- Per-user personalized recommendations for movies and TV shows\n- Content-based filtering using TF-IDF embeddings\n- Virtual library integration for universal client compatibility\n- Configurable weighting (favorites, rewatches, recency)\n- Abandoned series exclusion\n- Daily scheduled updates with manual refresh option\n- Complete privacy - all processing local",
         "targetAbi": "10.11.0.0",

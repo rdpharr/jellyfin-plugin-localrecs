@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-12-26
+
+### Added
+
+- **NFO Metadata Support**: Virtual library items now include NFO files with full metadata (runtime, ratings, genres, studios, tags, provider IDs)
+- **Local Trailer Support**: Trailers from source media are now linked in virtual libraries using `-trailer.strm` files
+- **Movie Folder Structure**: Movies now use proper folder structure with NFO files for better metadata support
+
+### Fixed
+
+- Copy buttons on setup page now work with fallback clipboard support for broader browser compatibility
+- Manifest now correctly references ZIP file instead of raw DLL
+
+### Changed
+
+- Improved README with detailed installation instructions and algorithm documentation
+- Simplified bug report template
+
 ## [0.1.0] - 2025-12-26
 
 ### Initial Beta Release
@@ -54,4 +72,5 @@ Privacy-first personalized recommendations for Jellyfin based on local watch his
 - No collaborative filtering (recommendations based solely on individual user's history)
 - Series recommendations based on series-level metadata only (not individual episodes)
 
+[0.2.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.1.0
