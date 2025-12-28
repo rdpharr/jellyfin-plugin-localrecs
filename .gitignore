@@ -233,3 +233,6 @@ test-error.txt
 
 # Docker
 docker-compose.yml
+
+# Agent instructions (local-only)
+AGENTS.md

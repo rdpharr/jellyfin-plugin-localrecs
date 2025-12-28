@@ -24,7 +24,7 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
             MaxVocabularyActors = 500;
             MaxVocabularyDirectors = 0;
             MaxVocabularyTags = 500;
-            EnableRatingProximity = false;
+            EnableRatingProximity = true;
             RatingProximityWeight = 0.2;
         }
 

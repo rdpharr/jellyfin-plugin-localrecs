@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.LocalRecs.Configuration;
 using Jellyfin.Plugin.LocalRecs.Models;
 using Jellyfin.Plugin.LocalRecs.Utilities;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
+
+using LocalMediaType = Jellyfin.Plugin.LocalRecs.Models.MediaType;
 
 namespace Jellyfin.Plugin.LocalRecs.Services
 {
@@ -58,7 +63,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             IReadOnlyDictionary<Guid, ItemEmbedding> embeddings,
             IReadOnlyDictionary<Guid, MediaItemMetadata> metadata,
             PluginConfiguration config,
-            MediaType? mediaType = null,
+            LocalMediaType? mediaType = null,
             int maxResults = 25)
         {
             if (embeddings == null)
@@ -166,7 +171,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             Guid userId,
             IEnumerable<Guid> availableItemIds,
             IReadOnlyDictionary<Guid, MediaItemMetadata> metadata,
-            MediaType? mediaType,
+            LocalMediaType? mediaType,
             PluginConfiguration config)
         {
             var user = _userManager.GetUserById(userId);
@@ -202,14 +207,43 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 var item = _libraryManager.GetItemById(itemId);
                 if (item == null)
                 {
+                    _logger.LogDebug(
+                        "Item not found in library: {ItemId} ({Name})",
+                        itemId,
+                        itemMetadata.Name);
                     continue;
+                }
+
+                // Log if item path suggests it's from virtual library (shouldn't happen but check)
+                if (itemMetadata.Type == LocalMediaType.Series && item.Path != null && item.Path.Contains("virtual-libraries"))
+                {
+                    _logger.LogWarning(
+                        "Virtual library item in candidates: {Name} (ItemId={ItemId}, Path={Path})",
+                        itemMetadata.Name,
+                        itemId,
+                        item.Path);
                 }
 
                 var userData = _userDataManager.GetUserData(user, item);
 
                 // Exclude fully watched items
-                if (userData != null && userData.Played)
+                // For series, userData.Played is not reliable - we need to check for unwatched episodes
+                if (itemMetadata.Type == LocalMediaType.Series && item is Series series)
                 {
+                    if (IsSeriesFullyWatched(series, userId))
+                    {
+                        _logger.LogDebug(
+                            "Excluding fully watched series: {Name}",
+                            itemMetadata.Name);
+                        continue;
+                    }
+                }
+                else if (userData != null && userData.Played)
+                {
+                    _logger.LogDebug(
+                        "Excluding watched item: {Name} (Played={Played})",
+                        itemMetadata.Name,
+                        userData.Played);
                     continue;
                 }
 
@@ -223,7 +257,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
 
                 // Exclude partially watched series based on configuration
                 if (userData != null &&
-                    itemMetadata.Type == MediaType.Series &&
+                    itemMetadata.Type == LocalMediaType.Series &&
                     ShouldExcludePartiallyWatchedSeries(userData, config))
                 {
                     continue;
@@ -264,6 +298,36 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             // If there's no LastPlayedDate but the series has some watch progress,
             // this is an edge case. Don't exclude it - treat it as still active.
             return false;
+        }
+
+        /// <summary>
+        /// Checks if a series is fully watched by querying for unwatched episodes.
+        /// This is necessary because userData.Played for series is not automatically computed
+        /// based on episode watch status - it only reflects explicit "Mark as Played" actions.
+        /// </summary>
+        /// <param name="series">The series to check.</param>
+        /// <param name="userId">The user ID to check watch status for.</param>
+        /// <returns>True if all episodes have been watched.</returns>
+        private bool IsSeriesFullyWatched(Series series, Guid userId)
+        {
+            var user = _userManager.GetUserById(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            // Query for any unwatched episodes in this series
+            var unwatchedEpisodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+            {
+                IncludeItemTypes = new[] { BaseItemKind.Episode },
+                AncestorIds = new[] { series.Id },
+                IsPlayed = false,
+                Limit = 1, // We only need to know if any exist
+                Recursive = true
+            });
+
+            // Series is fully watched if there are no unwatched episodes
+            return unwatchedEpisodes.Count == 0;
         }
 
         /// <summary>
@@ -336,7 +400,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
         private List<ScoredRecommendation> GenerateColdStartRecommendations(
             Guid userId,
             IReadOnlyDictionary<Guid, MediaItemMetadata> metadata,
-            MediaType? mediaType,
+            LocalMediaType? mediaType,
             int maxResults)
         {
             _logger.LogInformation(

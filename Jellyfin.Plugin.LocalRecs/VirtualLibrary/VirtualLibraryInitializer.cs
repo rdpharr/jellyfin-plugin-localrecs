@@ -61,6 +61,11 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
                 {
                     LogSetupInstructions();
                     _logger.LogInformation("Play status sync service is active and monitoring virtual library changes");
+
+                    // Sync play status from source library to virtual library items
+                    // This ensures virtual library items reflect the real library's play status
+                    _logger.LogInformation("Syncing play status from source library to virtual library items...");
+                    _playStatusSyncService.SyncPlayStatusFromSourceLibraryForAllUsers();
                 }
             }
             catch (OperationCanceledException)

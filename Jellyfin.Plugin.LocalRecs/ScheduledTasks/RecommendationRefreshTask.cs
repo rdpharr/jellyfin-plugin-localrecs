@@ -21,7 +21,6 @@ namespace Jellyfin.Plugin.LocalRecs.ScheduledTasks
     {
         private readonly ILogger<RecommendationRefreshTask> _logger;
         private readonly IUserManager _userManager;
-        private readonly ILibraryManager _libraryManager;
         private readonly RecommendationRefreshService _refreshService;
         private readonly VirtualLibraryManager _virtualLibraryManager;
 
@@ -30,19 +29,16 @@ namespace Jellyfin.Plugin.LocalRecs.ScheduledTasks
         /// </summary>
         /// <param name="logger">Logger instance.</param>
         /// <param name="userManager">User manager.</param>
-        /// <param name="libraryManager">Library manager.</param>
         /// <param name="refreshService">Recommendation refresh service.</param>
         /// <param name="virtualLibraryManager">Virtual library manager.</param>
         public RecommendationRefreshTask(
             ILogger<RecommendationRefreshTask> logger,
             IUserManager userManager,
-            ILibraryManager libraryManager,
             RecommendationRefreshService refreshService,
             VirtualLibraryManager virtualLibraryManager)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-            _libraryManager = libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));
             _refreshService = refreshService ?? throw new ArgumentNullException(nameof(refreshService));
             _virtualLibraryManager = virtualLibraryManager ?? throw new ArgumentNullException(nameof(virtualLibraryManager));
         }
@@ -147,6 +143,8 @@ namespace Jellyfin.Plugin.LocalRecs.ScheduledTasks
                 LogLibraryScanInstructions();
 
                 progress?.Report(95);
+
+                // Note: Play status sync happens automatically via ItemAdded event when Jellyfin scans the new .strm files
 
                 // Step 5: Report results (100% progress)
                 var duration = DateTime.UtcNow - startTime;
