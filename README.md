@@ -1,205 +1,177 @@
-# Local Recommendations - Jellyfin Plugin
+# Local Recommendations
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)
 
-Privacy-conscious content recommendations for Jellyfin - personalized suggestions based entirely on your local watch history, with zero tracking or cloud dependencies.
+Privacy-first personalized recommendations for Jellyfin based entirely on local watch history and metadata similarity. No cloud services, no tracking.
 
-## Overview
+**⚠️ Beta Release:** This plugin is currently in beta testing. Please report any issues or feedback on [GitHub Issues](https://github.com/rdpharr/jellyfin-plugin-localrecs/issues).
 
-**⚠️ Beta Release:** This plugin is currently in beta testing. Please report any issues or feedback on GitHub.
+## Features
 
-Local Recommendations is a Jellyfin server plugin that generates personalized movie and TV show recommendations for each user using only your local watch history and metadata. No cloud services, no tracking, complete privacy.
-
-**Key Features:**
-- **Per-user personalized recommendations** - Each user gets recommendations tailored to their viewing history
-- **Content-based filtering** - Uses TF-IDF embeddings and cosine similarity to find similar content
-- **Simple update model** - Daily scheduled updates (manual refresh anytime via Scheduled Tasks)
+- **Per-user personalization** - Tailored recommendations for each user's viewing history
+- **Content-based filtering** - TF-IDF embeddings with cosine similarity matching
+- **Temporal similarity** - Decade-based grouping finds content from similar time periods
+- **Virtual library integration** - Works on all Jellyfin clients (web, mobile, Roku, etc.)
+- **Auto-removal** - Recommendations disappear when you start watching them
 - **Privacy-first** - All processing happens locally on your server
-- **Works on all clients** - Recommendations appear as virtual libraries accessible from web, Roku, mobile, etc.
-- **Performance optimized** - Handles libraries of 2,000+ items efficiently
+- **Performance optimized** - Handles 2,000+ item libraries efficiently
 
 ## Requirements
 
-- **Jellyfin Server:** 10.11.5 or later
+- **Jellyfin Server:** 10.11.5+
 - **.NET Runtime:** 9.0
 - **Target ABI:** 10.11.0.0
 
 ## Installation
 
-1. Add the plugin repository to Jellyfin - https://raw.githubusercontent.com/rdpharr/jellyfin-plugin-localrecs/main/manifest.json
-2. Install "Local Recommendations" from the plugin catalog
-3. Restart Jellyfin server
-4. Configure the plugin and set up per-user virtual libraries
+1. **Add plugin repository:**  
+   Dashboard → Plugins → Repositories → Add  
+   `https://raw.githubusercontent.com/rdpharr/jellyfin-plugin-localrecs/main/manifest.json`
+
+2. **Install plugin:**  
+   Dashboard → Plugins → Catalog → Install "Local Recommendations"
+
+3. **Restart Jellyfin server**
+
+4. **Configure virtual libraries** (see Setup below)
 
 ## Setup
 
-### One-Time Configuration (5-10 minutes total)
+### Quick Start (5-10 minutes)
 
-#### Step 1: Configure Plugin Settings
-1. Navigate to **Dashboard → Plugins → Local Recommendations**
-2. Go to the **Settings** tab
-3. Configure recommendation settings (counts, weights, etc.)
-4. Save configuration
+#### 1. View Library Paths
+- Navigate to: **Dashboard → Plugins → Local Recommendations → Setup Guide**
+- Copy the library paths for each user (two per user: Movies and TV)
 
-#### Step 2: View Library Paths
-1. Go back to the **Setup Guide** tab on the plugin configuration page
-2. You'll see paths for each user's libraries with copy buttons
-3. Note the suggested library names for each user
+#### 2. Create Virtual Libraries
+For each user, create **two** libraries:
 
-#### Step 3: Create Libraries in Jellyfin
+**Movies:**
+- Dashboard → Libraries → Add Media Library
+- Content Type: **Movies**
+- Add media location: Paste the **Movie Library Path** from Setup Guide
+- Library name: User's suggested name (e.g., "John's Recommended Movies")
 
-**For each user**, create TWO libraries:
+**TV Shows:**
+- Content Type: **Shows**
+- Add media location: Paste the **TV Library Path** from Setup Guide
+- Library name: User's suggested name (e.g., "John's Recommended TV")
 
-1. **Movies Library**:
-   - Dashboard → Libraries → Add Media Library
-   - Content Type: **Movies**
-   - Click "Add media location"
-   - Paste the **Movie Library Path** from the plugin page
-   - Library Name: Use suggested name (e.g., "John's Recommended Movies")
-   - Click OK
-
-2. **TV Library**:
-   - Repeat with Content Type: **Shows**
-   - Use the **TV Library Path** from the plugin page
-   - Library Name: Use suggested name (e.g., "John's Recommended TV")
-
-**Time:** ~2 minutes per user
-
-#### Step 4: Set Library Permissions
-
+#### 3. Set Permissions
 For each user:
-1. Dashboard → Users → [Username] → Library Access
-2. **Enable** ONLY that user's recommendation libraries
-3. **Disable** other users' recommendation libraries
-4. Save
+- Dashboard → Users → [Username] → Library Access
+- Enable **only** that user's recommendation libraries
+- Disable other users' recommendation libraries
 
-This ensures users only see their own recommendations.
+#### 4. Generate Recommendations
+- Dashboard → Scheduled Tasks → "Refresh Local Recommendations" → Run Now
+- Wait ~1-5 minutes (depending on library size)
+- Manually scan recommendation libraries to see results
 
-#### Step 5: Generate Initial Recommendations
-1. Dashboard → Scheduled Tasks
-2. Find "Refresh Local Recommendations"
-3. Click **Run Now** (▶️)
-4. Wait for completion (~1-5 minutes depending on library size)
+## Configuration
 
-### Configuration Options
+Access via: **Dashboard → Plugins → Local Recommendations → Settings**
 
-Access the plugin configuration page in Jellyfin Dashboard → Plugins → Local Recommendations → Settings tab.
+### Key Settings
 
-#### Recommendation Settings
-- **Movie/TV Recommendation Count** - How many items to recommend (default: 25 each)
-- **Min Watched Items** - Minimum watch history before personalization kicks in (default: 3)
-- **Exclude Abandoned Series** - Don't recommend partially watched series that haven't been watched recently (default: enabled)
-- **Abandoned Series Threshold** - Days of inactivity before a series is considered abandoned (default: 90 days)
+**Recommendation Counts**
+- Movies and TV shows to recommend per user (default: 25 each)
+- Minimum watched items for personalization (default: 3)
 
-#### Update Schedule
-Recommendations update automatically via scheduled task:
-- **Default:** Daily at 4:00 AM (configurable in Dashboard → Scheduled Tasks)
-- **Custom schedule:** Modify time or frequency in Scheduled Tasks UI
-- **Manual refresh:** Available anytime via Scheduled Tasks
+**Filtering**
+- Exclude abandoned TV series (default: enabled, 90 days threshold)
+- Auto-remove recommendations when user starts watching them
 
-#### Weighting Factors
-- **Favorite Boost** - Multiplier for favorited items (default: 2.0x)
-- **Rewatch Boost** - Multiplier for rewatched items (default: 1.5x)
-- **Recency Decay Half-Life** - Days for watch weight to decay by half (default: 365)
+**Weighting Factors**
+- Favorite boost: 2.0x (configurable)
+- Rewatch boost: 1.5x (configurable)
+- Recency decay half-life: 365 days (configurable)
 
-#### Release Year Preference
-- Option to boost recommendations from user's preferred era
-- Calculates weighted average of watched content release years
-- Adjustable weight for year proximity bonus
+**Optional Features**
+- Rating proximity scoring (boost items with similar ratings)
+- Decade-based temporal similarity (finds content from similar eras)
 
-#### Rating Preference
-- Option to boost recommendations with similar ratings to user's preferences
-- Calculates weighted average of watched content ratings
-- Adjustable weight for rating proximity bonus
+**Performance**
+- Vocabulary limits for actors/tags (default: 500 each)
+- Parallel processing options
 
-#### Performance Tuning
-- Limit vocabulary sizes for actors, directors, and tags (default: 500 for actors and tags)
-- Enable/disable parallel processing
-- Adjust max parallel tasks
+**Update Schedule**
+- Default: Daily at 4:00 AM
+- Customize in Dashboard → Scheduled Tasks
+- Manual refresh available anytime
 
 ## How It Works
 
 ### Algorithm
 
-The plugin uses a content-based filtering approach:
+**Content-based filtering** using TF-IDF embeddings and cosine similarity:
 
-1. **Feature Extraction** - Extracts genres, actors, directors, tags, ratings, and release year from each item
-2. **TF-IDF Embeddings** - Computes term frequency-inverse document frequency vectors for categorical features
-3. **User Profiles** - Builds a taste vector for each user by aggregating weighted embeddings of watched items
-4. **Similarity Scoring** - Recommends unwatched items with highest cosine similarity to user's taste vector
-5. **Proximity Bonuses** - Optional bonuses for items with similar release years and ratings to user's preferences
-6. **Weighting Factors** - Applies boosts for favorites, rewatches, and recency to improve recommendations
+1. **Feature extraction** - Genres, actors, directors, tags, decades, ratings
+2. **TF-IDF embeddings** - Numerical vectors for each item (~1200-1500 dimensions)
+3. **User profiles** - Aggregated taste vector from weighted watch history
+4. **Similarity scoring** - Cosine similarity between user profile and unwatched items
+5. **Ranking** - Top N items sorted by similarity score
+
+**Weighting factors:**
+- Favorites (2x boost)
+- Rewatches (1.5x boost)
+- Recency decay (365-day half-life)
+- Decade similarity (items from similar time periods)
+- Optional rating proximity (items with similar ratings)
 
 ### Virtual Libraries
 
-Recommendations are exposed as per-user virtual libraries that appear in Jellyfin's library list. The plugin:
+Recommendations appear as separate libraries for each user:
 
-1. **Creates directories** in the plugin data folder for each user (e.g., `{PluginData}/virtual-libraries/{userId}/movies`)
-2. **Generates .strm files** that point to the original media files in your library
-3. **Admin creates libraries** via Jellyfin UI pointing to these directories (one-time setup)
-4. **Sets permissions** so each user sees only their own recommendation libraries
+- Plugin creates `.strm` files pointing to original media files
+- Admin creates Jellyfin libraries pointing to plugin directories (one-time setup)
+- Each user gets Movies and TV libraries with personalized recommendations
+- Auto-removal: Recommendations disappear when playback starts (prevents duplicate "Continue Watching" entries)
 
-Each user gets:
-- A "Recommended Movies" library
-- A "Recommended TV" library
+### Privacy
 
-The `.strm` files allow Jellyfin to stream the actual media while keeping recommendations separate from your main library.
+**100% local processing:**
+- No external services or cloud dependencies
+- No tracking or telemetry
+- Only uses data already in your Jellyfin database
+- All computation happens on your server
 
+## Known Limitations
 
-## Privacy
-
-All data processing happens locally on your Jellyfin server. The plugin:
-- **Never** sends data to external services
-- **Never** tracks or collects user behavior
-- **Only** uses data already available in your Jellyfin database
+- **Metadata display:** Virtual library items may not show full metadata (runtime, ratings, cast) in the UI due to Jellyfin's `.strm` file handling. Playback and posters work normally.
+- **Manual setup required:** Admin must manually create libraries and set permissions (Jellyfin API limitation)
+- **Library scanning:** Manually scan recommendation libraries after refresh to see updates
 
 ## Building from Source
 
-### Prerequisites
-- .NET 9.0 SDK
-- Git
-
-### Build Steps
+**Prerequisites:** .NET 9.0 SDK, Git
 
 ```bash
-# Clone the repository
 git clone https://github.com/rdpharr/jellyfin-plugin-localrecs.git
 cd jellyfin-plugin-localrecs
 
-# Build the plugin (uses dotnet-helper.sh wrapper)
+# Build (uses dotnet-helper.sh wrapper)
 bash dotnet-helper.sh build
 
 # Run tests
 bash dotnet-helper.sh test
 
-# Clean build artifacts
-bash dotnet-helper.sh clean
-
-# The built plugin will be in:
-# Jellyfin.Plugin.LocalRecs/bin/Debug/net9.0/
+# Output: Jellyfin.Plugin.LocalRecs/bin/Debug/net9.0/
 ```
 
-**Note:** On Windows, use Git Bash or WSL to run the helper script.
-
-
+**Windows:** Use Git Bash or WSL to run the helper script.
 
 ## Contributing
 
-Contributions are welcome! For technical details, see [DESIGN.md](DESIGN.md).
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Built for the [Jellyfin](https://jellyfin.org/) media server
-- Inspired by JellyNext's per-user virtual library architecture
-- Uses content-based filtering techniques from recommender systems research
+Contributions welcome! See [DESIGN.md](DESIGN.md) for technical details and architecture.
 
 ## Support
 
-- **Issues:** Report bugs or request features via [GitHub Issues](https://github.com/rdpharr/jellyfin-plugin-localrecs/issues)
-- **Discussions:** Join the conversation on [GitHub Discussions](https://github.com/rdpharr/jellyfin-plugin-localrecs/discussions)
-- **Documentation:** See [DESIGN.md](DESIGN.md) for architectural details
+- **Issues:** [GitHub Issues](https://github.com/rdpharr/jellyfin-plugin-localrecs/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/rdpharr/jellyfin-plugin-localrecs/discussions)
+- **Documentation:** [DESIGN.md](DESIGN.md)
+
+## License
+
+GNU General Public License v3.0 - see [LICENSE.txt](LICENSE.txt)
