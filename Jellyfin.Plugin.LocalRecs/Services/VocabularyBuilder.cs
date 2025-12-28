@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.LocalRecs.Services
 {
     /// <summary>
-    /// Service for building genre, actor, director, and tag vocabularies from media library.
+    /// Service for building genre, actor, director, tag, and decade vocabularies from media library.
     /// Vocabularies are used to compute IDF values for TF-IDF embeddings.
     /// </summary>
     public class VocabularyBuilder
@@ -107,22 +107,38 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 vocabulary.SetTagIdf(tag.Key, idf);
             }
 
+            // Build decade vocabulary and document frequencies
+            var decadeDocCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in itemList)
+            {
+                var decade = item.Decade;
+                if (decadeDocCounts.ContainsKey(decade))
+                {
+                    decadeDocCounts[decade]++;
+                }
+                else
+                {
+                    decadeDocCounts[decade] = 1;
+                }
+            }
+
+            foreach (var decade in decadeDocCounts)
+            {
+                vocabulary.AddDecade(decade.Key, decade.Value);
+                var idf = ComputeIdf(itemList.Count, decade.Value);
+                vocabulary.SetDecadeIdf(decade.Key, idf);
+            }
+
             // Set metadata
             vocabulary.TotalItems = itemList.Count;
 
-            var itemsWithYear = itemList.Where(i => i.ReleaseYear.HasValue).Select(i => i.ReleaseYear!.Value).ToList();
-            if (itemsWithYear.Count > 0)
-            {
-                vocabulary.MinReleaseYear = itemsWithYear.Min();
-                vocabulary.MaxReleaseYear = itemsWithYear.Max();
-            }
-
             _logger.LogInformation(
-                "Built vocabulary: {GenreCount} genres, {ActorCount} actors, {DirectorCount} directors, {TagCount} tags",
+                "Built vocabulary: {GenreCount} genres, {ActorCount} actors, {DirectorCount} directors, {TagCount} tags, {DecadeCount} decades",
                 vocabulary.Genres.Count,
                 vocabulary.Actors.Count,
                 vocabulary.Directors.Count,
-                vocabulary.Tags.Count);
+                vocabulary.Tags.Count,
+                vocabulary.Decades.Count);
 
             return vocabulary;
         }

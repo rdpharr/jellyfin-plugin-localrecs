@@ -16,14 +16,14 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
             vocabulary.Actors.Should().NotBeNull().And.BeEmpty();
             vocabulary.Directors.Should().NotBeNull().And.BeEmpty();
             vocabulary.Tags.Should().NotBeNull().And.BeEmpty();
+            vocabulary.Decades.Should().NotBeNull().And.BeEmpty();
             vocabulary.Collections.Should().NotBeNull().And.BeEmpty();
             vocabulary.GenreIdf.Should().NotBeNull().And.BeEmpty();
             vocabulary.ActorIdf.Should().NotBeNull().And.BeEmpty();
             vocabulary.DirectorIdf.Should().NotBeNull().And.BeEmpty();
             vocabulary.TagIdf.Should().NotBeNull().And.BeEmpty();
+            vocabulary.DecadeIdf.Should().NotBeNull().And.BeEmpty();
             vocabulary.TotalItems.Should().Be(0);
-            vocabulary.MinReleaseYear.Should().BeNull();
-            vocabulary.MaxReleaseYear.Should().BeNull();
         }
 
         [Fact]
@@ -92,6 +92,19 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
         }
 
         [Fact]
+        public void AddDecade_AddsToDecadesDictionary()
+        {
+            var vocabulary = new FeatureVocabulary();
+
+            vocabulary.AddDecade("1990s", 75);
+            vocabulary.AddDecade("2000s", 120);
+
+            vocabulary.Decades.Should().HaveCount(2);
+            vocabulary.Decades["1990s"].Should().Be(75);
+            vocabulary.Decades["2000s"].Should().Be(120);
+        }
+
+        [Fact]
         public void SetTagIdf_SetsIdfValue()
         {
             var vocabulary = new FeatureVocabulary();
@@ -102,6 +115,19 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
             vocabulary.TagIdf.Should().HaveCount(2);
             vocabulary.TagIdf["4K"].Should().Be(0.8f);
             vocabulary.TagIdf["HDR"].Should().Be(1.5f);
+        }
+
+        [Fact]
+        public void SetDecadeIdf_SetsIdfValue()
+        {
+            var vocabulary = new FeatureVocabulary();
+
+            vocabulary.SetDecadeIdf("1980s", 1.2f);
+            vocabulary.SetDecadeIdf("2010s", 0.7f);
+
+            vocabulary.DecadeIdf.Should().HaveCount(2);
+            vocabulary.DecadeIdf["1980s"].Should().Be(1.2f);
+            vocabulary.DecadeIdf["2010s"].Should().Be(0.7f);
         }
 
         [Fact]
@@ -153,11 +179,13 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
             vocabulary.Actors.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, int>>();
             vocabulary.Directors.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, int>>();
             vocabulary.Tags.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, int>>();
+            vocabulary.Decades.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, int>>();
             vocabulary.Collections.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, int>>();
             vocabulary.GenreIdf.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, float>>();
             vocabulary.ActorIdf.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, float>>();
             vocabulary.DirectorIdf.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, float>>();
             vocabulary.TagIdf.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, float>>();
+            vocabulary.DecadeIdf.Should().BeAssignableTo<System.Collections.Generic.IReadOnlyDictionary<string, float>>();
         }
 
         [Fact]
@@ -170,9 +198,10 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
             vocabulary.AddDirector("Director1", 1);
             vocabulary.AddTag("Tag1", 1);
             vocabulary.AddTag("Tag2", 1);
+            vocabulary.AddDecade("1990s", 1);
             vocabulary.AddCollection("Collection1", 1);
 
-            vocabulary.TotalFeatures.Should().Be(7); // 2 genres + 1 actor + 1 director + 2 tags + 1 collection
+            vocabulary.TotalFeatures.Should().Be(8); // 2 genres + 1 actor + 1 director + 2 tags + 1 decade + 1 collection
         }
 
         [Fact]
@@ -184,19 +213,6 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Unit.Models
             };
 
             vocabulary.TotalItems.Should().Be(2000);
-        }
-
-        [Fact]
-        public void ReleaseYearRange_CanBeSet()
-        {
-            var vocabulary = new FeatureVocabulary
-            {
-                MinReleaseYear = 1970,
-                MaxReleaseYear = 2024,
-            };
-
-            vocabulary.MinReleaseYear.Should().Be(1970);
-            vocabulary.MaxReleaseYear.Should().Be(2024);
         }
 
         [Fact]

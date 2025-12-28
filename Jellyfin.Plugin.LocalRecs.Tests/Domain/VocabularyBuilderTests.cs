@@ -85,7 +85,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
         }
 
         [Fact]
-        public void BuildVocabulary_SetsYearRangeCorrectly()
+        public void BuildVocabulary_ExtractsAllDecades()
         {
             // Arrange
             var library = TestMediaLibrary.CreateTestMovies();
@@ -94,8 +94,10 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
             var vocabulary = _builder.BuildVocabulary(library);
 
             // Assert
-            vocabulary.MinReleaseYear.Should().BeLessThanOrEqualTo(1979); // Alien is earliest
-            vocabulary.MaxReleaseYear.Should().BeGreaterThanOrEqualTo(2017); // Blade Runner 2049 is latest
+            vocabulary.Decades.Should().NotBeEmpty();
+            vocabulary.Decades.Keys.Should().Contain("1970s"); // Alien (1979)
+            vocabulary.Decades.Keys.Should().Contain("1990s"); // The Matrix (1999)
+            vocabulary.Decades.Keys.Should().Contain("2010s"); // Blade Runner 2049 (2017)
         }
 
         #endregion
@@ -463,7 +465,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
         }
 
         [Fact]
-        public void BuildVocabulary_ItemsWithoutReleaseYear_DoesNotAffectYearRange()
+        public void BuildVocabulary_ItemsWithoutReleaseYear_GetUnknownDecade()
         {
             // Arrange
             var library = new List<MediaItemMetadata>
@@ -477,8 +479,39 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
             var vocabulary = _builder.BuildVocabulary(library);
 
             // Assert
-            vocabulary.MinReleaseYear.Should().Be(2000);
-            vocabulary.MaxReleaseYear.Should().Be(2020);
+            vocabulary.Decades.Keys.Should().Contain("Unknown");
+            vocabulary.Decades.Keys.Should().Contain("2000s");
+            vocabulary.Decades.Keys.Should().Contain("2020s");
+            vocabulary.Decades["Unknown"].Should().Be(1); // One item without ReleaseYear
+        }
+
+        [Fact]
+        public void BuildVocabulary_CommonDecade_HasLowerIdf()
+        {
+            // Arrange - Create library where "2000s" is common, "1980s" is rare
+            var library = new List<MediaItemMetadata>();
+            for (int i = 0; i < 10; i++)
+            {
+                var item = new MediaItemMetadata(Guid.NewGuid(), $"Movie {i}", MediaType.Movie);
+                item.ReleaseYear = 2000 + i; // All in 2000s
+
+                if (i == 0)
+                {
+                    item.ReleaseYear = 1985; // Only one in 1980s
+                }
+
+                library.Add(item);
+            }
+
+            // Act
+            var vocabulary = _builder.BuildVocabulary(library);
+
+            // Assert
+            var decade2000sIdf = vocabulary.DecadeIdf["2000s"];
+            var decade1980sIdf = vocabulary.DecadeIdf["1980s"];
+
+            decade2000sIdf.Should().BeLessThan(decade1980sIdf,
+                "common decade (2000s) should have lower IDF than rare decade (1980s)");
         }
 
         [Fact]
@@ -519,6 +552,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
                 vocabulary.Actors.Count +
                 vocabulary.Directors.Count +
                 vocabulary.Tags.Count +
+                vocabulary.Decades.Count +
                 vocabulary.Collections.Count);
         }
 

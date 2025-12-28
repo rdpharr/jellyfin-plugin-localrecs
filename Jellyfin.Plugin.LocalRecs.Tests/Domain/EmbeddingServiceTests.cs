@@ -130,8 +130,8 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
                              vocabulary.Actors.Count + 
                              vocabulary.Directors.Count + 
                              vocabulary.Tags.Count +
-                             2 + // ratings
-                             1;  // year
+                             vocabulary.Decades.Count +
+                             2; // ratings
 
             var actualDim = _embeddingService.GetEmbeddingDimension(vocabulary);
 
@@ -240,32 +240,67 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
         }
 
         [Fact]
-        public void ComputeEmbedding_YearNormalization_HandlesEdgeCases()
+        public void ComputeEmbedding_SameDecade_IncreasedSimilarity()
         {
-            // Create items spanning different years
-            var oldItem = new MediaItemMetadata(Guid.NewGuid(), "Old Movie", MediaType.Movie)
+            // Create items in same decade (1990s) vs different decades
+            var item1990a = new MediaItemMetadata(Guid.NewGuid(), "Movie 1990", MediaType.Movie)
             {
-                ReleaseYear = 1970
+                ReleaseYear = 1990
             };
             
-            var newItem = new MediaItemMetadata(Guid.NewGuid(), "New Movie", MediaType.Movie)
+            var item1999 = new MediaItemMetadata(Guid.NewGuid(), "Movie 1999", MediaType.Movie)
+            {
+                ReleaseYear = 1999
+            };
+            
+            var item2020 = new MediaItemMetadata(Guid.NewGuid(), "Movie 2020", MediaType.Movie)
+            {
+                ReleaseYear = 2020
+            };
+            
+            var items = new[] { item1990a, item1999, item2020 };
+            var vocabulary = _vocabularyBuilder.BuildVocabulary(items);
+
+            var embedding1990a = _embeddingService.ComputeEmbedding(item1990a, vocabulary);
+            var embedding1999 = _embeddingService.ComputeEmbedding(item1999, vocabulary);
+            var embedding2020 = _embeddingService.ComputeEmbedding(item2020, vocabulary);
+
+            // All should produce valid normalized vectors
+            VectorMath.Magnitude(embedding1990a.Vector).Should().BeApproximately(1.0f, 0.001f);
+            VectorMath.Magnitude(embedding1999.Vector).Should().BeApproximately(1.0f, 0.001f);
+            VectorMath.Magnitude(embedding2020.Vector).Should().BeApproximately(1.0f, 0.001f);
+            
+            // Same decade should have higher similarity
+            var sameDecadeSim = VectorMath.CosineSimilarity(embedding1990a.Vector, embedding1999.Vector);
+            var diffDecadeSim = VectorMath.CosineSimilarity(embedding1990a.Vector, embedding2020.Vector);
+            
+            sameDecadeSim.Should().BeGreaterThan(diffDecadeSim,
+                "items from same decade (1990s) should be more similar than items from different decades");
+        }
+
+        [Fact]
+        public void ComputeEmbedding_DifferentDecades_LowerSimilarity()
+        {
+            // Create items spanning multiple decades
+            var item1970s = new MediaItemMetadata(Guid.NewGuid(), "70s Movie", MediaType.Movie)
+            {
+                ReleaseYear = 1975
+            };
+            
+            var item2020s = new MediaItemMetadata(Guid.NewGuid(), "2020s Movie", MediaType.Movie)
             {
                 ReleaseYear = 2023
             };
             
-            var items = new[] { oldItem, newItem };
+            var items = new[] { item1970s, item2020s };
             var vocabulary = _vocabularyBuilder.BuildVocabulary(items);
 
-            var oldEmbedding = _embeddingService.ComputeEmbedding(oldItem, vocabulary);
-            var newEmbedding = _embeddingService.ComputeEmbedding(newItem, vocabulary);
+            var embedding1970s = _embeddingService.ComputeEmbedding(item1970s, vocabulary);
+            var embedding2020s = _embeddingService.ComputeEmbedding(item2020s, vocabulary);
 
-            // Both should produce valid normalized vectors
-            VectorMath.Magnitude(oldEmbedding.Vector).Should().BeApproximately(1.0f, 0.001f);
-            VectorMath.Magnitude(newEmbedding.Vector).Should().BeApproximately(1.0f, 0.001f);
-            
-            // Vectors should be different (year component differs)
-            var similarity = VectorMath.CosineSimilarity(oldEmbedding.Vector, newEmbedding.Vector);
-            similarity.Should().BeLessThan(1.0f);
+            // Vectors should be different (decade component differs)
+            var similarity = VectorMath.CosineSimilarity(embedding1970s.Vector, embedding2020s.Vector);
+            similarity.Should().BeLessThan(1.0f, "different decades should result in lower similarity");
         }
 
         [Fact]
