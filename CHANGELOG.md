@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-12-27
+
+### Fixed
+
+- **Series Filtering**: Fully watched series no longer appear in recommendations. Previously relied on unreliable `userData.Played` flag; now queries for unwatched episodes directly
+- **Play Status Sync**: Virtual library items now correctly reflect source library watch status when scanned by Jellyfin
+
+### Added
+
+- **Play Status Sync on Item Add**: When Jellyfin scans new virtual library items, their play status is automatically synced from the source library via `ItemAdded` event
+- **Play Status Sync on Startup**: Existing virtual library items sync play status from source library when plugin initializes
+- **Rating Proximity Scoring**: Optional feature to boost recommendations with similar community/critic ratings to user's watched content
+
+### Changed
+
+- Refactored `PlayStatusSyncService` to reduce code duplication with extracted helper methods
+- Reduced debug logging noise in production for cleaner logs
+- Removed ineffective sync call from recommendation refresh task (items aren't indexed yet when it runs)
+
+### Removed
+
+- **NFO File Generation**: Removed NFO metadata files as Jellyfin doesn't read NFO files for .strm content (metadata comes from the source library item)
+
 ## [0.2.1] - 2025-12-26
 
 ### Fixed
@@ -84,6 +107,7 @@ Privacy-first personalized recommendations for Jellyfin based on local watch his
 - No collaborative filtering (recommendations based solely on individual user's history)
 - Series recommendations based on series-level metadata only (not individual episodes)
 
+[0.3.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.1
 [0.2.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.1.0

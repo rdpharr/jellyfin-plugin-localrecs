@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.3.0.0",
+        "changelog": "Series filtering fix and play status sync\n- Fixed fully watched series appearing in recommendations\n- Play status sync from source library when virtual items are scanned\n- Rating proximity scoring feature\n- Removed NFO file generation (Jellyfin doesn't read NFO for .strm files)\n- Reduced debug logging noise",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/download/v0.3.0/jellyfin-plugin-localrecs-v0.3.0.zip",
+        "checksum": "05de481e13cad831efeee081d1e19d19",
+        "timestamp": "2025-12-27T00:00:00Z"
+      },
+      {
         "version": "0.2.1.0",
         "changelog": "Fix NFO metadata parsing\n- Fixed XML encoding (UTF-16 to UTF-8) so Jellyfin reads runtime correctly\n- Added cast, directors, and writers to NFO files\n- Added fileinfo/streamdetails for video/audio/subtitle stream selectors",
         "targetAbi": "10.11.0.0",
