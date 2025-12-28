@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-12-28
+
+### Added
+
+- **Decade-Based Temporal Similarity**: Recommendations now consider content from similar time periods using categorical decade grouping (1980s, 1990s, etc.) instead of continuous year normalization
+  - Improves temporal relevance alongside existing genre/actor/director similarity features
+  - Tested with production data: ~12 decades extracted from 970 items
+  - Observable impact: 24% of movie recommendations changed, 8% of TV recommendations changed
+
+### Fixed
+
+- **In-Progress Series Filtering**: TV series with unwatched episodes no longer appear in recommendations (prevents recommending shows you're currently watching)
+
 ## [0.3.0] - 2025-12-27
 
 ### Fixed
@@ -107,6 +120,7 @@ Privacy-first personalized recommendations for Jellyfin based on local watch his
 - No collaborative filtering (recommendations based solely on individual user's history)
 - Series recommendations based on series-level metadata only (not individual episodes)
 
+[0.4.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.4.0
 [0.3.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.3.0
 [0.2.1]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.1
 [0.2.0]: https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/tag/v0.2.0

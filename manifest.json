@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.4.0.0",
+        "changelog": "Decade-based temporal similarity and bug fix\n- Recommendations now consider content from similar time periods\n- Decade grouping (1980s, 1990s, etc.) replaces continuous year normalization\n- Improves temporal relevance alongside genre/actor/director similarity\n- Tested with production data: ~12 decades extracted from 970 items\n- Observable impact: 24% of movie recommendations changed, 8% of TV\n- Fixed: In-progress TV series no longer appear in recommendations",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/download/v0.4.0/jellyfin-plugin-localrecs-v0.4.0.zip",
+        "checksum": "TBD",
+        "timestamp": "2025-12-28T00:00:00Z"
+      },
+      {
         "version": "0.3.0.0",
         "changelog": "Series filtering fix and play status sync\n- Fixed fully watched series appearing in recommendations\n- Play status sync from source library when virtual items are scanned\n- Rating proximity scoring feature\n- Removed NFO file generation (Jellyfin doesn't read NFO for .strm files)\n- Reduced debug logging noise",
         "targetAbi": "10.11.0.0",
