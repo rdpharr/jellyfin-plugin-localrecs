@@ -117,7 +117,7 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 **Purpose:** Build feature vocabularies from library metadata to enable TF-IDF computation.
 
 **Responsibilities:**
-- Extract unique features from all library items (genres, actors, directors, tags)
+- Extract unique features from all library items (genres, actors, directors, tags, decades)
 - Compute document frequency for each feature (how many items contain it)
 - Apply vocabulary limits to most frequent features (default: top 500 actors/tags)
 - Generate `FeatureVocabulary` object with term-to-index mappings
@@ -138,6 +138,14 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 - Actors: Top 500 by frequency
 - Directors: No limit (typically <500 unique)
 - Tags: Top 500 by frequency
+- Decades: No limit (typically 10-15 unique, e.g., "1960s", "1970s", ..., "2020s", "Unknown")
+
+**Decade Feature:**
+- Derived automatically from `ReleaseYear` field (no additional metadata required)
+- Format: Decade strings like "1980s", "1990s", "2000s", etc.
+- Items without release year are assigned "Unknown" decade
+- Provides temporal similarity for era-based recommendations (e.g., 80s action movies, 90s comedies)
+- Replaces the previous continuous year normalization feature with categorical decade grouping
 
 **Why limit vocabularies?**
 - Reduces embedding dimensionality from 5000+ to ~1200-1500
@@ -149,12 +157,25 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 **Purpose:** Transform media metadata into numerical vector representations.
 
 **Algorithm:** TF-IDF (Term Frequency-Inverse Document Frequency)
-- **Categorical features** (genres, actors, directors, tags): TF-IDF vectors
-- **Numerical features** (ratings, release year): Normalized scalars
+- **Categorical features** (genres, actors, directors, tags, decades): TF-IDF vectors
+- **Numerical features** (ratings): Normalized scalars
 - **Output:** Fixed-length embedding vector per item (~1200-1500 dimensions)
 
+**Vector Layout:**
+```
+[Genres (N) | Actors (M) | Directors (P) | Tags (Q) | Decades (~12) | Ratings (2)]
+```
+
+**Decade Encoding:**
+- Each item is assigned to exactly one decade based on its release year
+- Decades are treated as categorical features (like genres or tags)
+- Binary TF (present=1, absent=0) with IDF weighting
+- Common decades (e.g., 2000s with many items) get lower IDF weights
+- Rare decades (e.g., 1920s with few items) get higher IDF weights
+- This allows recommendations to favor items from similar time periods
+
 **Why TF-IDF?**
-- Emphasizes distinctive features (rare actors/genres) over common ones
+- Emphasizes distinctive features (rare actors/genres/decades) over common ones
 - Computationally efficient (linear in library size)
 - Interpretable and debuggable
 - No training data required (works from day one)

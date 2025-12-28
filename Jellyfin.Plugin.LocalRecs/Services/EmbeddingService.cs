@@ -82,13 +82,13 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 throw new ArgumentNullException(nameof(vocabulary));
             }
 
-            // Dimensions: genres + actors + directors + tags + ratings (2) + year (1)
+            // Dimensions: genres + actors + directors + tags + decades + ratings (2)
             return vocabulary.Genres.Count +
                    vocabulary.Actors.Count +
                    vocabulary.Directors.Count +
                    vocabulary.Tags.Count +
-                   2 + // community rating + critic rating
-                   1;  // release year
+                   vocabulary.Decades.Count +
+                   2; // community rating + critic rating
         }
 
         /// <summary>
@@ -114,12 +114,10 @@ namespace Jellyfin.Plugin.LocalRecs.Services
             var actorVector = ComputeTfIdfVector(item.Actors, vocabulary.ActorIdf);
             var directorVector = ComputeTfIdfVector(item.Directors, vocabulary.DirectorIdf);
             var tagVector = ComputeTfIdfVector(item.Tags, vocabulary.TagIdf);
+            var decadeVector = ComputeDecadeVector(item.Decade, vocabulary.DecadeIdf);
 
             // Compute normalized rating features
             var ratingFeatures = ComputeRatingFeatures(item);
-
-            // Compute normalized release year feature
-            var yearFeature = ComputeYearFeature(item, vocabulary);
 
             // Concatenate all features into single vector
             var combinedVector = ConcatenateVectors(
@@ -127,8 +125,8 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 actorVector,
                 directorVector,
                 tagVector,
-                ratingFeatures,
-                new[] { yearFeature });
+                decadeVector,
+                ratingFeatures);
 
             // Normalize to unit length for cosine similarity
             var normalizedVector = VectorMath.Normalize(combinedVector);
@@ -187,31 +185,27 @@ namespace Jellyfin.Plugin.LocalRecs.Services
         }
 
         /// <summary>
-        /// Computes normalized release year feature.
+        /// Computes TF-IDF vector for a single decade feature.
         /// </summary>
-        /// <param name="item">The media item.</param>
-        /// <param name="vocabulary">The vocabulary with min/max year.</param>
-        /// <returns>Normalized year value [0, 1].</returns>
-        private float ComputeYearFeature(MediaItemMetadata item, FeatureVocabulary vocabulary)
+        /// <param name="decade">The decade of the item.</param>
+        /// <param name="idfValues">IDF values for each decade in vocabulary.</param>
+        /// <returns>TF-IDF vector.</returns>
+        private float[] ComputeDecadeVector(string decade, IReadOnlyDictionary<string, float> idfValues)
         {
-            if (!item.ReleaseYear.HasValue ||
-                !vocabulary.MinReleaseYear.HasValue ||
-                !vocabulary.MaxReleaseYear.HasValue)
+            var vector = new float[idfValues.Count];
+            var index = 0;
+
+            foreach (var (vocabDecade, idf) in idfValues)
             {
-                return 0.5f; // Default to middle if unknown
+                // TF = 1 if decade matches, 0 otherwise (binary TF)
+                var tf = string.Equals(decade, vocabDecade, StringComparison.OrdinalIgnoreCase) ? 1.0f : 0.0f;
+
+                // TF-IDF = TF × IDF
+                vector[index] = tf * idf;
+                index++;
             }
 
-            var minYear = vocabulary.MinReleaseYear.Value;
-            var maxYear = vocabulary.MaxReleaseYear.Value;
-
-            if (maxYear == minYear)
-            {
-                return 0.5f; // All items same year
-            }
-
-            // Normalize to [0, 1]
-            var normalized = (float)(item.ReleaseYear.Value - minYear) / (maxYear - minYear);
-            return Math.Clamp(normalized, 0.0f, 1.0f);
+            return vector;
         }
 
         /// <summary>

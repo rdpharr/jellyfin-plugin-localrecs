@@ -12,11 +12,13 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         private readonly Dictionary<string, int> _actors;
         private readonly Dictionary<string, int> _directors;
         private readonly Dictionary<string, int> _tags;
+        private readonly Dictionary<string, int> _decades;
         private readonly Dictionary<string, int> _collections;
         private readonly Dictionary<string, float> _genreIdf;
         private readonly Dictionary<string, float> _actorIdf;
         private readonly Dictionary<string, float> _directorIdf;
         private readonly Dictionary<string, float> _tagIdf;
+        private readonly Dictionary<string, float> _decadeIdf;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FeatureVocabulary"/> class.
@@ -27,11 +29,13 @@ namespace Jellyfin.Plugin.LocalRecs.Models
             _actors = new Dictionary<string, int>();
             _directors = new Dictionary<string, int>();
             _tags = new Dictionary<string, int>();
+            _decades = new Dictionary<string, int>();
             _collections = new Dictionary<string, int>();
             _genreIdf = new Dictionary<string, float>();
             _actorIdf = new Dictionary<string, float>();
             _directorIdf = new Dictionary<string, float>();
             _tagIdf = new Dictionary<string, float>();
+            _decadeIdf = new Dictionary<string, float>();
         }
 
         /// <summary>
@@ -53,6 +57,11 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         /// Gets the tag vocabulary (feature name → document frequency).
         /// </summary>
         public IReadOnlyDictionary<string, int> Tags => _tags;
+
+        /// <summary>
+        /// Gets the decade vocabulary (feature name → document frequency).
+        /// </summary>
+        public IReadOnlyDictionary<string, int> Decades => _decades;
 
         /// <summary>
         /// Gets the collection vocabulary (feature name → document frequency).
@@ -80,19 +89,14 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         public IReadOnlyDictionary<string, float> TagIdf => _tagIdf;
 
         /// <summary>
+        /// Gets the IDF values for decades.
+        /// </summary>
+        public IReadOnlyDictionary<string, float> DecadeIdf => _decadeIdf;
+
+        /// <summary>
         /// Gets or sets the total number of items in the library.
         /// </summary>
         public int TotalItems { get; set; }
-
-        /// <summary>
-        /// Gets or sets the minimum release year in the library.
-        /// </summary>
-        public int? MinReleaseYear { get; set; }
-
-        /// <summary>
-        /// Gets or sets the maximum release year in the library.
-        /// </summary>
-        public int? MaxReleaseYear { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp when this vocabulary was built.
@@ -103,7 +107,7 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         /// Gets the total vocabulary size (all features combined).
         /// </summary>
         public int TotalFeatures =>
-            Genres.Count + Actors.Count + Directors.Count + Tags.Count + Collections.Count;
+            Genres.Count + Actors.Count + Directors.Count + Tags.Count + Decades.Count + Collections.Count;
 
         /// <summary>
         /// Adds or updates a genre in the vocabulary.
@@ -132,6 +136,13 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         /// <param name="tag">The tag name.</param>
         /// <param name="documentFrequency">The document frequency.</param>
         public void AddTag(string tag, int documentFrequency) => _tags[tag] = documentFrequency;
+
+        /// <summary>
+        /// Adds or updates a decade in the vocabulary.
+        /// </summary>
+        /// <param name="decade">The decade name.</param>
+        /// <param name="documentFrequency">The document frequency.</param>
+        public void AddDecade(string decade, int documentFrequency) => _decades[decade] = documentFrequency;
 
         /// <summary>
         /// Adds or updates a collection in the vocabulary.
@@ -167,5 +178,12 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         /// <param name="tag">The tag name.</param>
         /// <param name="idf">The IDF value.</param>
         public void SetTagIdf(string tag, float idf) => _tagIdf[tag] = idf;
+
+        /// <summary>
+        /// Sets the IDF value for a decade.
+        /// </summary>
+        /// <param name="decade">The decade name.</param>
+        /// <param name="idf">The IDF value.</param>
+        public void SetDecadeIdf(string decade, float idf) => _decadeIdf[decade] = idf;
     }
 }

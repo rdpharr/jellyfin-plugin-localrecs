@@ -82,6 +82,14 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         public int? ReleaseYear { get; set; }
 
         /// <summary>
+        /// Gets the decade of release (e.g., "1980s", "1990s", "Unknown").
+        /// Returns "Unknown" if ReleaseYear is not set.
+        /// </summary>
+        public string Decade => ReleaseYear.HasValue
+            ? $"{(ReleaseYear.Value / 10) * 10}s"
+            : "Unknown";
+
+        /// <summary>
         /// Gets or sets the collection name (e.g., "Star Wars Collection").
         /// </summary>
         public string? CollectionName { get; set; }
