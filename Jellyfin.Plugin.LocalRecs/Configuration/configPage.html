@@ -53,22 +53,6 @@
                             <div class="fieldDescription">Users with fewer watched items will receive popular content (default: 3)</div>
                         </div>
                         
-                        <h2 class="sectionTitle">Series Filtering</h2>
-                        
-                        <div class="checkboxContainer checkboxContainer-withDescription">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="excludeAbandonedSeries" name="excludeAbandonedSeries" />
-                                <span>Exclude Abandoned Series from Recommendations</span>
-                            </label>
-                            <div class="fieldDescription checkboxFieldDescription">Prevent recommending partially watched series that haven't been watched recently</div>
-                        </div>
-                        
-                        <div class="inputContainer" id="abandonedSeriesThresholdContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="abandonedSeriesThreshold">Abandoned Series Threshold (days):</label>
-                            <input is="emby-input" type="number" id="abandonedSeriesThreshold" name="abandonedSeriesThreshold" min="1" max="730" />
-                            <div class="fieldDescription">Days since last watched before a series is excluded (default: 90)</div>
-                        </div>
-                        
                         <h2 class="sectionTitle">Weighting Factors</h2>
                         
                         <div class="inputContainer">
@@ -444,8 +428,6 @@
                             page.querySelector('#movieRecommendationCount').value = config.MovieRecommendationCount || 25;
                             page.querySelector('#tvRecommendationCount').value = config.TvRecommendationCount || 25;
                             page.querySelector('#minWatchedItems').value = config.MinWatchedItemsForPersonalization || 3;
-                            page.querySelector('#excludeAbandonedSeries').checked = config.ExcludeAbandonedSeries !== false;
-                            page.querySelector('#abandonedSeriesThreshold').value = config.AbandonedSeriesThresholdDays || 90;
                             page.querySelector('#favoriteBoost').value = config.FavoriteBoost || 2.0;
                             page.querySelector('#rewatchBoost').value = config.RewatchBoost || 1.5;
                             page.querySelector('#recencyDecayHalfLife').value = config.RecencyDecayHalfLifeDays || 365;
@@ -468,10 +450,6 @@
                  * Updates field visibility based on configuration.
                  */
                 updateFieldVisibility: function(page) {
-                    var excludeAbandoned = page.querySelector('#excludeAbandonedSeries').checked;
-                    var thresholdContainer = page.querySelector('#abandonedSeriesThresholdContainer');
-                    thresholdContainer.style.display = excludeAbandoned ? 'block' : 'none';
-                    
                     var enableRatingProximity = page.querySelector('#enableRatingProximity').checked;
                     var weightContainer = page.querySelector('#ratingProximityWeightContainer');
                     weightContainer.style.display = enableRatingProximity ? 'block' : 'none';
@@ -489,8 +467,6 @@
                             config.MovieRecommendationCount = parseInt(page.querySelector('#movieRecommendationCount').value);
                             config.TvRecommendationCount = parseInt(page.querySelector('#tvRecommendationCount').value);
                             config.MinWatchedItemsForPersonalization = parseInt(page.querySelector('#minWatchedItems').value);
-                            config.ExcludeAbandonedSeries = page.querySelector('#excludeAbandonedSeries').checked;
-                            config.AbandonedSeriesThresholdDays = parseInt(page.querySelector('#abandonedSeriesThreshold').value);
                             config.FavoriteBoost = parseFloat(page.querySelector('#favoriteBoost').value);
                             config.RewatchBoost = parseFloat(page.querySelector('#rewatchBoost').value);
                             config.RecencyDecayHalfLifeDays = parseFloat(page.querySelector('#recencyDecayHalfLife').value);
@@ -605,10 +581,6 @@
                 LocalRecsConfig.loadConfiguration(page);
                 
                 // Setup event listeners for settings
-                page.querySelector('#excludeAbandonedSeries').addEventListener('change', function() {
-                    LocalRecsConfig.updateFieldVisibility(page);
-                });
-                
                 page.querySelector('#enableRatingProximity').addEventListener('change', function() {
                     LocalRecsConfig.updateFieldVisibility(page);
                 });

@@ -19,8 +19,6 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
             RewatchBoost = 1.5;
             RecencyDecayHalfLifeDays = 365.0;
             MinWatchedItemsForPersonalization = 3;
-            ExcludeAbandonedSeries = true;
-            AbandonedSeriesThresholdDays = 90;
             MaxVocabularyActors = 500;
             MaxVocabularyDirectors = 0;
             MaxVocabularyTags = 500;
@@ -57,18 +55,6 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
         /// Gets or sets the minimum watched items required for personalization.
         /// </summary>
         public int MinWatchedItemsForPersonalization { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to exclude abandoned partially watched series from recommendations.
-        /// When enabled, series that haven't been watched within the threshold period are excluded.
-        /// </summary>
-        public bool ExcludeAbandonedSeries { get; set; }
-
-        /// <summary>
-        /// Gets or sets the threshold in days for considering a partially watched series as abandoned.
-        /// Series with no watch activity in this period will be excluded from recommendations if ExcludeAbandonedSeries is true.
-        /// </summary>
-        public int AbandonedSeriesThresholdDays { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum vocabulary size for actors (0 = unlimited).
@@ -134,11 +120,6 @@ namespace Jellyfin.Plugin.LocalRecs.Configuration
             if (MinWatchedItemsForPersonalization < 0)
             {
                 errors.Add("MinWatchedItemsForPersonalization must be non-negative");
-            }
-
-            if (AbandonedSeriesThresholdDays < 1)
-            {
-                errors.Add("AbandonedSeriesThresholdDays must be at least 1");
             }
 
             if (MaxVocabularyActors < 0)

@@ -227,13 +227,14 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 var userData = _userDataManager.GetUserData(user, item);
 
                 // Exclude fully watched items
-                // For series, userData.Played is not reliable - we need to check for unwatched episodes
+                // For series, userData.Played is not reliable - we need to check episode watch status
                 if (itemMetadata.Type == LocalMediaType.Series && item is Series series)
                 {
-                    if (IsSeriesFullyWatched(series, userId))
+                    // Exclude series with any watched episodes (both in-progress and fully watched)
+                    if (HasAnyWatchedEpisodes(series, user))
                     {
                         _logger.LogDebug(
-                            "Excluding fully watched series: {Name}",
+                            "Excluding series with watch history: {Name}",
                             itemMetadata.Name);
                         continue;
                     }
@@ -255,14 +256,6 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                     continue;
                 }
 
-                // Exclude partially watched series based on configuration
-                if (userData != null &&
-                    itemMetadata.Type == LocalMediaType.Series &&
-                    ShouldExcludePartiallyWatchedSeries(userData, config))
-                {
-                    continue;
-                }
-
                 candidates.Add(itemId);
             }
 
@@ -270,64 +263,26 @@ namespace Jellyfin.Plugin.LocalRecs.Services
         }
 
         /// <summary>
-        /// Determines if a series should be excluded based on watch activity.
-        /// Excludes series that have been abandoned (not watched within the threshold period).
-        /// </summary>
-        /// <param name="userData">User data for the series.</param>
-        /// <param name="config">Plugin configuration.</param>
-        /// <returns>True if the series should be excluded from recommendations.</returns>
-        private bool ShouldExcludePartiallyWatchedSeries(
-            MediaBrowser.Controller.Entities.UserItemData userData,
-            PluginConfiguration config)
-        {
-            // If ExcludeAbandonedSeries is disabled, don't exclude any partially watched series
-            if (!config.ExcludeAbandonedSeries)
-            {
-                return false;
-            }
-
-            // If the series has a LastPlayedDate, check if it's been abandoned
-            if (userData.LastPlayedDate.HasValue)
-            {
-                var daysSinceLastPlayed = (DateTime.UtcNow - userData.LastPlayedDate.Value).TotalDays;
-
-                // Exclude if NOT watched recently (abandoned = exceeds threshold)
-                return daysSinceLastPlayed >= config.AbandonedSeriesThresholdDays;
-            }
-
-            // If there's no LastPlayedDate but the series has some watch progress,
-            // this is an edge case. Don't exclude it - treat it as still active.
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if a series is fully watched by querying for unwatched episodes.
-        /// This is necessary because userData.Played for series is not automatically computed
-        /// based on episode watch status - it only reflects explicit "Mark as Played" actions.
+        /// Checks if a series has any watched episodes.
+        /// Series with any watch history (in-progress or fully watched) should be excluded
+        /// from recommendations since the user has already engaged with them.
         /// </summary>
         /// <param name="series">The series to check.</param>
-        /// <param name="userId">The user ID to check watch status for.</param>
-        /// <returns>True if all episodes have been watched.</returns>
-        private bool IsSeriesFullyWatched(Series series, Guid userId)
+        /// <param name="user">The user to check watch status for.</param>
+        /// <returns>True if the series has at least one watched episode.</returns>
+        private bool HasAnyWatchedEpisodes(Series series, Jellyfin.Database.Implementations.Entities.User user)
         {
-            var user = _userManager.GetUserById(userId);
-            if (user == null)
-            {
-                return false;
-            }
-
-            // Query for any unwatched episodes in this series
-            var unwatchedEpisodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+            // Query for any watched episodes in this series
+            var watchedEpisodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
             {
                 IncludeItemTypes = new[] { BaseItemKind.Episode },
                 AncestorIds = new[] { series.Id },
-                IsPlayed = false,
+                IsPlayed = true,
                 Limit = 1, // We only need to know if any exist
                 Recursive = true
             });
 
-            // Series is fully watched if there are no unwatched episodes
-            return unwatchedEpisodes.Count == 0;
+            return watchedEpisodes.Count > 0;
         }
 
         /// <summary>
