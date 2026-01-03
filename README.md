@@ -2,6 +2,7 @@
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)
+[![Tests](https://github.com/rdpharr/jellyfin-plugin-localrecs/actions/workflows/tests.yml/badge.svg)](https://github.com/rdpharr/jellyfin-plugin-localrecs/actions/workflows/tests.yml)
 
 Privacy-first personalized recommendations for Jellyfin based entirely on local watch history and metadata similarity. No cloud services, no tracking. Works on all Jellyfin clients (even TVs).
 
