@@ -606,7 +606,11 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
             }
 
             // Remove invalid filename characters
-            var invalidChars = Path.GetInvalidFileNameChars();
+            // Use a cross-platform set of invalid chars (Path.GetInvalidFileNameChars() varies by OS)
+            // Windows disallows: < > : " / \ | ? *
+            // Linux only disallows: / and null
+            // We use the Windows set for maximum compatibility across network shares and platforms
+            var invalidChars = new char[] { '<', '>', ':', '"', '/', '\\', '|', '?', '*' };
             var sanitized = string.Join("_", filename.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
 
             // Prevent path traversal: remove directory separators and parent directory references
