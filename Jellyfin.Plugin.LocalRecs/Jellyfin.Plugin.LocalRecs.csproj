@@ -16,10 +16,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Jellyfin.Controller" Version="10.11.5">
+        <PackageReference Include="Jellyfin.Controller" Version="10.11.9">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
-        <PackageReference Include="Jellyfin.Model" Version="10.11.5">
+        <PackageReference Include="Jellyfin.Model" Version="10.11.9">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />

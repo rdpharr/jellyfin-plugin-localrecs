@@ -68,7 +68,7 @@ namespace Jellyfin.Plugin.LocalRecs.ScheduledTasks
                 // Step 1: Get all users (5% progress)
                 progress?.Report(0);
                 cancellationToken.ThrowIfCancellationRequested();
-                var users = _userManager.Users.ToList();
+                var users = _userManager.GetUsers().ToList();
                 _logger.LogInformation("Generating recommendations for {UserCount} users", users.Count);
                 progress?.Report(5);
 

@@ -241,7 +241,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
 
             _logger.LogInformation("Syncing play status from source library for all users");
 
-            foreach (var user in _userManager.Users)
+            foreach (var user in _userManager.GetUsers())
             {
                 try
                 {
