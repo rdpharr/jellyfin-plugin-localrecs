@@ -46,7 +46,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
             _config = new PluginConfiguration
             {
                 FavoriteBoost = 2.0,
-                RewatchBoost = 1.5,
+                RecentWatchBoost = 1.0,
                 RecencyDecayHalfLifeDays = 365.0,
                 MinWatchedItemsForPersonalization = 3
             };
@@ -128,41 +128,6 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Domain
             matrixSimilarity.Should().BeGreaterThan(inceptionSimilarity,
                 "favorite item should have more influence due to favorite boost of {0}",
                 _config.FavoriteBoost);
-        }
-
-        [Fact]
-        public void BuildUserProfile_WithRewatches_RewatchesGetHigherWeight()
-        {
-            // Arrange
-            var library = TestMediaLibrary.CreateTestMovies();
-            var godfather = library.First(m => m.Name == "The Godfather");
-            var toyStory = library.First(m => m.Name == "Toy Story");
-
-            var embeddings = CreateEmbeddings(library);
-            var metadata = library.ToDictionary(i => i.Id, i => i);
-
-            // Setup: Godfather watched 5 times, Toy Story watched once (same recency, not favorites)
-            SetupSpecificUserData(godfather, isFavorite: false, playCount: 5, daysAgo: 10);
-            SetupSpecificUserData(toyStory, isFavorite: false, playCount: 1, daysAgo: 10);
-
-            // Act
-            var profile = _service.BuildUserProfile(_testUserId, embeddings, _config);
-
-            // Assert
-            profile.Should().NotBeNull();
-            profile!.WatchedItemCount.Should().Be(2);
-
-            // Verify that the taste vector is more similar to the rewatched item
-            var godfatherSimilarity = Utilities.VectorMath.CosineSimilarity(
-                profile.TasteVector,
-                embeddings[godfather.Id].Vector);
-            var toyStorySimilarity = Utilities.VectorMath.CosineSimilarity(
-                profile.TasteVector,
-                embeddings[toyStory.Id].Vector);
-
-            // Godfather (rewatched 5x) should have higher influence on taste vector
-            godfatherSimilarity.Should().BeGreaterThan(toyStorySimilarity,
-                "rewatched item should have more influence due to rewatch boost");
         }
 
         [Fact]
