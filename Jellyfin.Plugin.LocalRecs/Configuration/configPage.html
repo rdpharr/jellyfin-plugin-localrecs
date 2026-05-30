@@ -62,9 +62,9 @@
                         </div>
                         
                         <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="rewatchBoost">Rewatch Boost:</label>
-                            <input is="emby-input" type="number" id="rewatchBoost" name="rewatchBoost" min="1.0" max="5.0" step="0.1" />
-                            <div class="fieldDescription">Multiplier for rewatched items (default: 1.5)</div>
+                            <label class="inputLabel inputLabelUnfocused" for="recentWatchBoost">Recent Watch Emphasis:</label>
+                            <input is="emby-input" type="number" id="recentWatchBoost" name="recentWatchBoost" min="0" max="5.0" step="0.1" />
+                            <div class="fieldDescription">How much more a recently watched item shapes your taste profile compared to older watches. 0 = no emphasis, 1 = just-watched items get 2× weight (default: 1.0)</div>
                         </div>
                         
                         <div class="inputContainer">
@@ -429,7 +429,7 @@
                             page.querySelector('#tvRecommendationCount').value = config.TvRecommendationCount !== undefined ? config.TvRecommendationCount : 25;
                             page.querySelector('#minWatchedItems').value = config.MinWatchedItemsForPersonalization !== undefined ? config.MinWatchedItemsForPersonalization : 3;
                             page.querySelector('#favoriteBoost').value = config.FavoriteBoost !== undefined ? config.FavoriteBoost : 2.0;
-                            page.querySelector('#rewatchBoost').value = config.RewatchBoost !== undefined ? config.RewatchBoost : 1.5;
+                            page.querySelector('#recentWatchBoost').value = config.RecentWatchBoost !== undefined ? config.RecentWatchBoost : 1.0;
                             page.querySelector('#recencyDecayHalfLife').value = config.RecencyDecayHalfLifeDays !== undefined ? config.RecencyDecayHalfLifeDays : 365;
                             page.querySelector('#maxVocabularyActors').value = config.MaxVocabularyActors !== undefined ? config.MaxVocabularyActors : 500;
                             page.querySelector('#maxVocabularyDirectors').value = config.MaxVocabularyDirectors !== undefined ? config.MaxVocabularyDirectors : 0;
@@ -468,7 +468,7 @@
                             config.TvRecommendationCount = parseInt(page.querySelector('#tvRecommendationCount').value);
                             config.MinWatchedItemsForPersonalization = parseInt(page.querySelector('#minWatchedItems').value);
                             config.FavoriteBoost = parseFloat(page.querySelector('#favoriteBoost').value);
-                            config.RewatchBoost = parseFloat(page.querySelector('#rewatchBoost').value);
+                            config.RecentWatchBoost = parseFloat(page.querySelector('#recentWatchBoost').value);
                             config.RecencyDecayHalfLifeDays = parseFloat(page.querySelector('#recencyDecayHalfLife').value);
                             config.MaxVocabularyActors = parseInt(page.querySelector('#maxVocabularyActors').value);
                             config.MaxVocabularyDirectors = parseInt(page.querySelector('#maxVocabularyDirectors').value);

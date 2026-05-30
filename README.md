@@ -86,7 +86,7 @@ Access via: **Dashboard → Plugins → Local Recommendations → Settings**
 
 **Weighting Factors**
 - Favorite boost: 2.0x (configurable)
-- Rewatch boost: 1.5x (configurable)
+- Recent watch emphasis: 1.0 (configurable) — amplifies recently watched items using decay²
 - Recency decay half-life: 365 days (configurable)
 
 **Optional Features**
@@ -120,7 +120,7 @@ Access via: **Dashboard → Plugins → Local Recommendations → Settings**
 
 **Weighting factors:**
 - Favorites (2x boost)
-- Rewatches (1.5x boost)
+- Recent watch emphasis (decay² amplification, default 1.0)
 - Recency decay (365-day half-life)
 - Decade similarity (items from similar time periods)
 - Optional rating proximity (items with similar ratings)

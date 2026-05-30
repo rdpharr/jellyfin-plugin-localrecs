@@ -145,23 +145,30 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                     continue;
                 }
 
-                // For series, userData.Played is unreliable - it only becomes true when ALL
-                // episodes are watched. Instead, check for any watched episodes to include
-                // series the user has actually engaged with in the taste profile.
+                // For series, userData.Played is unreliable — it only becomes true when ALL
+                // episodes are watched. Use the most recently watched episode's date instead.
+                DateTime lastPlayedDate;
                 if (item is Series series)
                 {
-                    if (!HasAnyWatchedEpisodes(series, user))
+                    var seriesLastPlayed = GetLastWatchedEpisodeDate(series, user);
+                    if (seriesLastPlayed == null)
                     {
                         continue;
                     }
+
+                    lastPlayedDate = seriesLastPlayed.Value;
                 }
                 else if (!userData.Played)
                 {
                     // For movies, Played = true means the movie was completed.
                     continue;
                 }
+                else
+                {
+                    lastPlayedDate = userData.LastPlayedDate ?? DateTime.UtcNow;
+                }
 
-                var record = new WatchRecord(itemId, userId, userData.LastPlayedDate ?? DateTime.UtcNow)
+                var record = new WatchRecord(itemId, userId, lastPlayedDate)
                 {
                     IsFavorite = userData.IsFavorite,
                     PlayCount = userData.PlayCount > 0 ? userData.PlayCount : 1,
@@ -176,20 +183,28 @@ namespace Jellyfin.Plugin.LocalRecs.Services
         }
 
         /// <summary>
-        /// Checks if a series has any watched episodes.
+        /// Returns the most recent LastPlayedDate across watched episodes of a series,
+        /// or null if no episodes have been watched.
         /// </summary>
-        private bool HasAnyWatchedEpisodes(Series series, Jellyfin.Database.Implementations.Entities.User user)
+        private DateTime? GetLastWatchedEpisodeDate(Series series, Jellyfin.Database.Implementations.Entities.User user)
         {
-            var watchedEpisodes = _libraryManager.GetItemList(new InternalItemsQuery(user)
+            var result = _libraryManager.GetItemList(new InternalItemsQuery(user)
             {
                 IncludeItemTypes = new[] { BaseItemKind.Episode },
                 AncestorIds = new[] { series.Id },
                 IsPlayed = true,
-                Limit = 1,
-                Recursive = true
+                Recursive = true,
+                OrderBy = new[] { (ItemSortBy.DatePlayed, Jellyfin.Database.Implementations.Enums.SortOrder.Descending) },
+                Limit = 1
             });
 
-            return watchedEpisodes.Count > 0;
+            if (result.Count == 0)
+            {
+                return null;
+            }
+
+            var epData = _userDataManager.GetUserData(user, result[0]);
+            return epData?.LastPlayedDate ?? DateTime.UtcNow;
         }
 
         /// <summary>
@@ -232,8 +247,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                     config.RecencyDecayHalfLifeDays,
                     record.IsFavorite,
                     (float)config.FavoriteBoost,
-                    Math.Max(1, record.PlayCount),
-                    (float)config.RewatchBoost);
+                    (float)config.RecentWatchBoost);
 
                 // Accumulate weighted vectors
                 for (int i = 0; i < dimension; i++)

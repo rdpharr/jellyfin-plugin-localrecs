@@ -174,7 +174,7 @@ namespace Jellyfin.Plugin.LocalRecs.ScheduledTasks
                 results.AppendLine("4. User Profile Generation");
                 results.AppendLine("   " + new string('-', 76));
 
-                var users = _userManager.Users.ToList();
+                var users = _userManager.GetUsers().ToList();
                 var metadata = library.ToDictionary(m => m.Id);
 
                 // Use the embeddings directly if it's already a dictionary, otherwise convert

@@ -13,9 +13,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Jellyfin.Controller" Version="10.11.5" />
-        <PackageReference Include="Jellyfin.Database.Implementations" Version="10.11.5" />
-        <PackageReference Include="Jellyfin.Model" Version="10.11.5" />
+        <PackageReference Include="Jellyfin.Controller" Version="10.11.9" />
+        <PackageReference Include="Jellyfin.Database.Implementations" Version="10.11.9" />
+        <PackageReference Include="Jellyfin.Model" Version="10.11.9" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
         <PackageReference Include="xunit" Version="2.9.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
