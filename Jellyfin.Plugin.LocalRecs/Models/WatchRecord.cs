@@ -41,11 +41,6 @@ namespace Jellyfin.Plugin.LocalRecs.Models
         public bool IsFavorite { get; set; }
 
         /// <summary>
-        /// Gets or sets the play count.
-        /// </summary>
-        public int PlayCount { get; set; }
-
-        /// <summary>
         /// Gets or sets the community rating (0-10 scale) of the item, if available.
         /// </summary>
         public float? CommunityRating { get; set; }

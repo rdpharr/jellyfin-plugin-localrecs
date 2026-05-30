@@ -26,8 +26,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(matrix.Id, userId, now.AddDays(-7))
                 {
-                    IsFavorite = true,
-                    PlayCount = 3
+                    IsFavorite = true
                 });
             }
 
@@ -37,8 +36,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(inception.Id, userId, now.AddDays(-14))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -48,8 +46,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(bladeRunner.Id, userId, now.AddDays(-21))
                 {
-                    IsFavorite = true,
-                    PlayCount = 2
+                    IsFavorite = true
                 });
             }
 
@@ -59,8 +56,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(interstellar.Id, userId, now.AddDays(-90))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -70,8 +66,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(alien.Id, userId, now.AddDays(-180))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -95,8 +90,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(godfather.Id, userId, now.AddDays(-10))
                 {
-                    IsFavorite = true,
-                    PlayCount = 5
+                    IsFavorite = true
                 });
             }
 
@@ -106,8 +100,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(shawshank.Id, userId, now.AddDays(-20))
                 {
-                    IsFavorite = true,
-                    PlayCount = 3
+                    IsFavorite = true
                 });
             }
 
@@ -117,8 +110,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(darkKnight.Id, userId, now.AddDays(-30))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -142,8 +134,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(toyStory.Id, userId, now.AddDays(-5))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -152,8 +143,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
             {
                 records.Add(new WatchRecord(groundhogDay.Id, userId, now.AddDays(-10))
                 {
-                    IsFavorite = false,
-                    PlayCount = 1
+                    IsFavorite = false
                 });
             }
 
@@ -181,8 +171,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
                 {
                     records.Add(new WatchRecord(film.Id, userId, now.AddDays(-5 - (i * 8)))
                     {
-                        IsFavorite = true,
-                        PlayCount = 2 + (i % 3)
+                        IsFavorite = true
                     });
                 }
             }
@@ -211,8 +200,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
                 {
                     records.Add(new WatchRecord(film.Id, userId, now.AddDays(-i))
                     {
-                        IsFavorite = false,
-                        PlayCount = 1
+                        IsFavorite = false
                     });
                 }
             }
@@ -241,8 +229,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
                 {
                     records.Add(new WatchRecord(film.Id, userId, now.AddDays(-365 - (i * 30)))
                     {
-                        IsFavorite = false,
-                        PlayCount = 1
+                        IsFavorite = false
                     });
                 }
             }
@@ -271,8 +258,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
                 {
                     records.Add(new WatchRecord(series.Id, userId, now.AddDays(-10 - (i * 15)))
                     {
-                        IsFavorite = seriesNames[i] == "Breaking Bad",
-                        PlayCount = 1 + (i % 2)
+                        IsFavorite = seriesNames[i] == "Breaking Bad"
                     });
                 }
             }
@@ -308,8 +294,7 @@ namespace Jellyfin.Plugin.LocalRecs.Tests.Fixtures
                 {
                     records.Add(new WatchRecord(film.Id, userId, now.AddDays(-15 - (i * 5)))
                     {
-                        IsFavorite = i == 0, // Only first one is favorite
-                        PlayCount = 1
+                        IsFavorite = i == 0 // Only first one is favorite
                     });
                 }
             }
