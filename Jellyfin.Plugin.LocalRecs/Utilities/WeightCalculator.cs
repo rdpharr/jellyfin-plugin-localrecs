@@ -3,7 +3,7 @@ using System;
 namespace Jellyfin.Plugin.LocalRecs.Utilities
 {
     /// <summary>
-    /// Pure functions for computing weights (recency decay, favorite boost, rewatch boost).
+    /// Pure functions for computing weights (recency decay, favorite boost, recent watch boost).
     /// </summary>
     public static class WeightCalculator
     {
@@ -55,62 +55,50 @@ namespace Jellyfin.Plugin.LocalRecs.Utilities
         }
 
         /// <summary>
-        /// Applies rewatch boost using logarithmic scaling.
-        /// Boost = base_weight × (1 + log(play_count, rewatch_base)).
+        /// Applies recent watch boost using decay-squared amplification.
+        /// Weight = decay × (1 + recentWatchBoost × decay).
+        /// Items watched recently (decay near 1) receive up to (1 + recentWatchBoost)× weight.
+        /// Items watched long ago (decay near 0) receive near-zero additional boost.
         /// </summary>
-        /// <param name="baseWeight">The base weight.</param>
-        /// <param name="playCount">Number of times the item was played.</param>
-        /// <param name="rewatchBase">Base for logarithmic scaling (default 1.5).</param>
+        /// <param name="decay">Recency decay value between 0 and 1.</param>
+        /// <param name="recentWatchBoost">Boost multiplier for recently watched items (0 = no boost).</param>
         /// <returns>Boosted weight.</returns>
-        /// <exception cref="ArgumentException">Thrown when baseWeight is negative, playCount is less than 1, or rewatchBase is less than or equal to 1.</exception>
-        public static float ApplyRewatchBoost(float baseWeight, int playCount, float rewatchBase = 1.5f)
+        /// <exception cref="ArgumentException">Thrown when decay is outside [0,1] or recentWatchBoost is negative.</exception>
+        public static float ApplyRecentWatchBoost(float decay, float recentWatchBoost)
         {
-            if (baseWeight < 0)
+            if (decay < 0 || decay > 1)
             {
-                throw new ArgumentException("Base weight cannot be negative", nameof(baseWeight));
+                throw new ArgumentException("Decay must be between 0 and 1", nameof(decay));
             }
 
-            if (playCount < 1)
+            if (recentWatchBoost < 0)
             {
-                throw new ArgumentException("Play count must be at least 1", nameof(playCount));
+                throw new ArgumentException("Recent watch boost cannot be negative", nameof(recentWatchBoost));
             }
 
-            if (rewatchBase <= 1)
-            {
-                throw new ArgumentException("Rewatch base must be greater than 1", nameof(rewatchBase));
-            }
-
-            if (playCount == 1)
-            {
-                return baseWeight; // No boost for single watch
-            }
-
-            // Logarithmic scaling: 1 + log_base(play_count)
-            float boost = 1.0f + (float)Math.Log(playCount, rewatchBase);
-            return baseWeight * boost;
+            return decay * (1.0f + (recentWatchBoost * decay));
         }
 
         /// <summary>
         /// Computes the combined weight for a watch record.
+        /// Formula: decay × (1 + recentWatchBoost × decay) × favoriteBoost.
         /// </summary>
         /// <param name="daysSince">Days since last watched.</param>
         /// <param name="halfLifeDays">Recency decay half-life.</param>
         /// <param name="isFavorite">Whether the item is favorite.</param>
         /// <param name="favoriteBoost">Favorite boost multiplier.</param>
-        /// <param name="playCount">Number of times played.</param>
-        /// <param name="rewatchBase">Rewatch logarithmic base.</param>
+        /// <param name="recentWatchBoost">Amplification factor for recently watched items.</param>
         /// <returns>Combined weight.</returns>
         public static float ComputeCombinedWeight(
             double daysSince,
             double halfLifeDays,
             bool isFavorite,
             float favoriteBoost,
-            int playCount,
-            float rewatchBase = 1.5f)
+            float recentWatchBoost)
         {
-            float weight = ExponentialDecay(daysSince, halfLifeDays);
+            float decay = ExponentialDecay(daysSince, halfLifeDays);
+            float weight = ApplyRecentWatchBoost(decay, recentWatchBoost);
             weight = ApplyFavoriteBoost(weight, isFavorite, favoriteBoost);
-            weight = ApplyRewatchBoost(weight, playCount, rewatchBase);
             return weight;
         }
     }

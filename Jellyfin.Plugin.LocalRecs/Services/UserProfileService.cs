@@ -247,8 +247,7 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                     config.RecencyDecayHalfLifeDays,
                     record.IsFavorite,
                     (float)config.FavoriteBoost,
-                    Math.Max(1, record.PlayCount),
-                    (float)config.RewatchBoost);
+                    (float)config.RecentWatchBoost);
 
                 // Accumulate weighted vectors
                 for (int i = 0; i < dimension; i++)

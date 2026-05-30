@@ -185,7 +185,7 @@ The plugin follows a **layered architecture** with clear separation of concerns:
 
 **Weighting Factors:**
 - **Favorites:** 2.0x boost (configurable)
-- **Rewatches:** 1.5x boost (configurable)
+- **Recent watch emphasis:** decay² amplification — `decay × (1 + recentWatchBoost × decay)` — disproportionately amplifies recently watched items without relying on unreliable play count data (default: 1.0, configurable)
 - **Recency decay:** Exponential decay with configurable half-life (default: 365 days)
 
 **Output:** Normalized user profile vector (same dimensionality as item embeddings)
@@ -489,7 +489,7 @@ All settings exposed via plugin configuration UI and stored in Jellyfin's plugin
 ### Key Settings
 - **Recommendation counts:** Movies and TV (default: 25 each)
 - **Update schedule:** Daily at 4:00 AM by default (customizable via Scheduled Tasks UI)
-- **Weighting factors:** Favorite boost (2x), rewatch boost (1.5x), recency decay half-life (365 days)
+- **Weighting factors:** Favorite boost (2x), recent watch emphasis (decay² amplification, default 1.0), recency decay half-life (365 days)
 - **Performance tuning:** Vocabulary limits for actors, directors, and tags
 - **Cold-start threshold:** Minimum watched items for personalization (default: 3)
 - **Series filtering:** Exclude abandoned series from recommendations (configurable threshold)
