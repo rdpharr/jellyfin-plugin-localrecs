@@ -53,7 +53,7 @@ namespace Jellyfin.Plugin.LocalRecs.Api
         {
             try
             {
-                var users = _userManager.Users.ToList();
+                var users = _userManager.GetUsers().ToList();
                 var paths = new List<UserLibraryPathInfo>();
 
                 foreach (var user in users)

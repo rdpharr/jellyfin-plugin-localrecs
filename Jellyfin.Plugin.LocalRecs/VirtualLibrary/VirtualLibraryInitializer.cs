@@ -108,7 +108,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
             }
 
             // Get users once to avoid multiple enumerations
-            var users = _userManager.Users.ToList();
+            var users = _userManager.GetUsers().ToList();
             var successCount = 0;
 
             foreach (var user in users)
@@ -133,7 +133,7 @@ namespace Jellyfin.Plugin.LocalRecs.VirtualLibrary
 
         private void LogSetupInstructions()
         {
-            var users = _userManager.Users.ToList();
+            var users = _userManager.GetUsers().ToList();
 
             if (users.Count == 0)
             {
