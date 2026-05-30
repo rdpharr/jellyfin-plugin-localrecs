@@ -425,17 +425,17 @@
                     
                     ApiClient.getPluginConfiguration(self.pluginId)
                         .then(function(config) {
-                            page.querySelector('#movieRecommendationCount').value = config.MovieRecommendationCount || 25;
-                            page.querySelector('#tvRecommendationCount').value = config.TvRecommendationCount || 25;
-                            page.querySelector('#minWatchedItems').value = config.MinWatchedItemsForPersonalization || 3;
-                            page.querySelector('#favoriteBoost').value = config.FavoriteBoost || 2.0;
+                            page.querySelector('#movieRecommendationCount').value = config.MovieRecommendationCount !== undefined ? config.MovieRecommendationCount : 25;
+                            page.querySelector('#tvRecommendationCount').value = config.TvRecommendationCount !== undefined ? config.TvRecommendationCount : 25;
+                            page.querySelector('#minWatchedItems').value = config.MinWatchedItemsForPersonalization !== undefined ? config.MinWatchedItemsForPersonalization : 3;
+                            page.querySelector('#favoriteBoost').value = config.FavoriteBoost !== undefined ? config.FavoriteBoost : 2.0;
                             page.querySelector('#recentWatchBoost').value = config.RecentWatchBoost !== undefined ? config.RecentWatchBoost : 1.0;
-                            page.querySelector('#recencyDecayHalfLife').value = config.RecencyDecayHalfLifeDays || 365;
-                            page.querySelector('#maxVocabularyActors').value = config.MaxVocabularyActors || 500;
-                            page.querySelector('#maxVocabularyDirectors').value = config.MaxVocabularyDirectors || 0;
-                            page.querySelector('#maxVocabularyTags').value = config.MaxVocabularyTags || 500;
+                            page.querySelector('#recencyDecayHalfLife').value = config.RecencyDecayHalfLifeDays !== undefined ? config.RecencyDecayHalfLifeDays : 365;
+                            page.querySelector('#maxVocabularyActors').value = config.MaxVocabularyActors !== undefined ? config.MaxVocabularyActors : 500;
+                            page.querySelector('#maxVocabularyDirectors').value = config.MaxVocabularyDirectors !== undefined ? config.MaxVocabularyDirectors : 0;
+                            page.querySelector('#maxVocabularyTags').value = config.MaxVocabularyTags !== undefined ? config.MaxVocabularyTags : 500;
                             page.querySelector('#enableRatingProximity').checked = config.EnableRatingProximity || false;
-                            page.querySelector('#ratingProximityWeight').value = config.RatingProximityWeight || 0.2;
+                            page.querySelector('#ratingProximityWeight').value = config.RatingProximityWeight !== undefined ? config.RatingProximityWeight : 0.2;
 
                             self.updateFieldVisibility(page);
                             Dashboard.hideLoadingMsg();
