@@ -171,7 +171,6 @@ namespace Jellyfin.Plugin.LocalRecs.Services
                 var record = new WatchRecord(itemId, userId, lastPlayedDate)
                 {
                     IsFavorite = userData.IsFavorite,
-                    PlayCount = userData.PlayCount > 0 ? userData.PlayCount : 1,
                     CommunityRating = item.CommunityRating,
                     CriticRating = item.CriticRating
                 };
