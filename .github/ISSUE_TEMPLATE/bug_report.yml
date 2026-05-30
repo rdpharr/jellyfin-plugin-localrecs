@@ -60,5 +60,5 @@ body:
           required: true
         - label: I have sanitized all personal information from logs and descriptions
           required: true
-        - label: I am using a supported version of Jellyfin (10.11.5+)
+        - label: I am using a supported version of Jellyfin (10.11.9+)
           required: true

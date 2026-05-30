@@ -21,9 +21,9 @@ Please report any issues or feedback on [GitHub Issues](https://github.com/rdpha
 
 ## Requirements
 
-- **Jellyfin Server:** 10.11.5+
+- **Jellyfin Server:** 10.11.9+
 - **.NET Runtime:** 9.0
-- **Target ABI:** 10.11.0.0
+- **Target ABI:** 10.11.9.0
 
 ## Installation
 
