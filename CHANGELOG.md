@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-05-30
+
+### Fixed
+
+- **Jellyfin 10.11.9+ compatibility (#17, fixes #21)**: the recommendation refresh, benchmark, setup, and play-status sync tasks no longer crash with `MissingMethodException: IUserManager.get_Users()`. Jellyfin 10.11.9 removed the `IUserManager.Users` property as part of its EFCore refactor ([jellyfin#15368](https://github.com/jellyfin/jellyfin/pull/15368)); all six call sites now use `GetUsers()`. **This release requires Jellyfin 10.11.9 or newer** (see Upgrade Notes).
+- **TV series recency (#19)**: a series is now weighted by the date of its most recently watched episode. Previously every watched series was treated as watched *today* — Jellyfin never sets `LastPlayedDate` on the series item itself — which inflated TV influence on the taste profile regardless of when it was actually watched.
+- **Config page numeric fields (#22)**: numeric settings saved as `0` no longer silently revert to their hardcoded defaults on the next page load (JavaScript `||` treated `0` as falsy).
+
+### Changed
+
+- **Recent-watch emphasis replaces rewatch boost (#20)**: the play-count–based rewatch boost is replaced by a recency-driven `decay²` amplification (`weight = decay × (1 + RecentWatchBoost × decay)`). Jellyfin's `PlayCount` increments on every stop/start of a stream and is near-useless at the series level, so recency is now used as the preference-strength proxy (a genuine re-watch resets recency anyway). The `RewatchBoost` setting (default 1.5) is replaced by **`RecentWatchBoost`** (default 1.0); the old value is dropped on first save. Set `RecentWatchBoost = 0` to disable the emphasis entirely.
+
+### Internal
+
+- Removed the now-unused `WatchRecord.PlayCount` field (#25) and added regression tests covering the TV-series recency path (#24).
+
+### Upgrade Notes
+
+- **Requires Jellyfin 10.11.9.0 or newer.** This release targets ABI `10.11.9.0` and is **not** compatible with 10.11.0–10.11.8 (the `GetUsers()` API does not exist there). Jellyfin's plugin catalogue will only offer this update to servers running 10.11.9+; servers on older 10.11.x builds should remain on 0.6.0 until they update Jellyfin.
+- Recommendation ranking will shift on upgrade: the move to recency-based emphasis (and the series-recency fix) changes how watch history is weighted. Recommendations regenerate on the next scheduled refresh.
+
+### Credits
+
+- Huge thanks to [@PascalGodin](https://github.com/PascalGodin), who contributed the bulk of this release — the 10.11.9 compatibility fix (#17), the TV-series recency fix (#19), the recent-watch emphasis redesign (#20), and the config-page zero-value fix (#22).
+
 ## [0.6.0] - 2026-04-15
 
 ### Changed

@@ -1,7 +1,7 @@
 # Local Recommendations - Design Document
 
 **Version:** 0.1.0 Beta  
-**Target:** Jellyfin 10.11.5, .NET 9.0  
+**Target:** Jellyfin 10.11.9, .NET 9.0  
 **License:** GPLv3
 
 ## Overview

@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.6.1.0",
+        "changelog": "Jellyfin 10.11.9+ compatibility and recommendation-quality fixes\n- Fixes MissingMethodException crash on Jellyfin 10.11.9/10.11.10 (#17, fixes #21): all IUserManager.Users call sites now use GetUsers()\n- TV series now weighted by most recently watched episode date instead of always 'today' (#19)\n- Replaced play-count rewatch boost with recency-driven Recent Watch Emphasis using decay-squared amplification (#20); the RewatchBoost setting becomes RecentWatchBoost (default 1.0)\n- Config page numeric fields saved as 0 no longer revert to defaults (#22)\n- REQUIRES Jellyfin 10.11.9 or newer",
+        "targetAbi": "10.11.9.0",
+        "sourceUrl": "https://github.com/rdpharr/jellyfin-plugin-localrecs/releases/download/v0.6.1/jellyfin-plugin-localrecs-v0.6.1.zip",
+        "checksum": "564672f997c9cd6da4f07efeae2107bc",
+        "timestamp": "2026-05-30T00:00:00Z"
+      },
+      {
         "version": "0.6.0.0",
         "changelog": "Migrate from .strm files to filesystem symlinks (#13)\n- Fixes transcoded playback on Jellyfin 10.11.7+ (GHSA-j2hf-x4q5-47j3)\n- Symlinks preserve source extensions; media pipeline treats them as regular files\n- Artwork symlinked from source folder (propagates custom posters automatically)\n- Trailer discovery delegated to Jellyfin's native scanner\n- Removed ImageSyncService and EnableImageSync/SyncBackdrops settings\n- WINDOWS: requires Administrator or Developer Mode enabled for symlink creation",
         "targetAbi": "10.11.0.0",
